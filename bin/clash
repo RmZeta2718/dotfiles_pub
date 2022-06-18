@@ -1,0 +1,10 @@
+#!/bin/bash
+# This is a clash launcher
+
+CLASH='/usr/local/bin/clash-linux-amd64-v1.3.0'
+CONFIG_DIR="${HOME}/.config/clash"
+LOG_DIR="${HOME}/.log/clash"
+
+mkdir -p ${LOG_DIR}
+${CLASH} -d ${CONFIG_DIR} -f ${CONFIG_DIR}/config.yaml > ${LOG_DIR}/clash.log_$(date -I) &
+ln -fs $(ls -t ${LOG_DIR} | head -n1) ${LOG_DIR}/clash.log    # link to the newest log file
