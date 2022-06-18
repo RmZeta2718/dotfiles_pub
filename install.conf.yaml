@@ -1,24 +1,25 @@
 - defaults:
     clean:
-      recursive: true # turn off in ~/
+      recursive: true # must turn off in ~/
     link:
       create: true
-      # relink: true    # if this repo is moved, uncomment and install to relink dotfiles
+      # relink: true # if this repo is moved, uncomment and install to relink dotfiles
     shell:
       stdout: true
       stderr: true
+
+- create:
+    ~/.ssh:
+      mode: 0700
 
 - clean:
     ~/:
       recursive: false
 # recursive paths
-- clean: 
+- clean:
     - "~/.config"
+    - "~/.ssh"
     - "~/.oh-my-zsh/custom"
-
-- create:
-    ~/.ssh:
-      mode: 0700
 
 - link:
     ~/.dotfiles: "" # link itself
@@ -34,7 +35,7 @@
     # ~/.gitconfig:
     # ~/.vim
 
-    # ~/.ssh
+    ~/.ssh/config: ssh/config
 
 - shell:
     - git submodule sync --recursive

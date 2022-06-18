@@ -1,0 +1,10 @@
+# includes must go at the top
+# host-specific customization
+Include ~/.ssh/config_local
+
+# Read more about SSH config files: https://linux.die.net/man/5/ssh_config
+# keep alive every 60 seconds
+ServerAliveInterval 60
+# close session if no activity after 60 keep alive (i.e. 1 hour)
+ServerAliveCountMax 60
+
