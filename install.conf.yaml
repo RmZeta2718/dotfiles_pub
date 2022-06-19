@@ -33,7 +33,6 @@
 
     # TODO
     # ~/.config:
-    # ~/.gitconfig:
     # ~/.vim
 
     ~/.ssh/config: ssh/config
@@ -41,6 +40,7 @@
     ~/.config/clash/Country.mmdb: clash/Country.mmdb
 
     ~/.pythonrc:
+    ~/.gitconfig:
 
 - shell:
     - git submodule sync --recursive
