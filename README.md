@@ -39,4 +39,4 @@ git submodule add ${git_link_to_foo} ~/.dotfiles/vim/foo  # add submodule
 
 If a directory is managed by both public and private Dotbot repos(eg. `~/.ssh`, `~/.config` etc.), then you can't directly symlink the directory due to conflict. The solution is to link each file in these directories, explicitly or using wildcard(glob).
 
-You can create a symlink inside a git submodule. It won't be a trouble as long as the symlink is ignored in the submodule. See `~/.oh-my-zsh/custom/plugins` .
+You can create a symlink inside a git submodule. It won't be a trouble as long as the symlink is ignored in the submodule. See `~/.oh-my-zsh/custom/` .

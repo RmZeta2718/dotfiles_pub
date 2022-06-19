@@ -19,15 +19,16 @@
 - clean:
     - "~/.config"
     - "~/.ssh"
-    - "~/.oh-my-zsh/custom"
+    - "~/.oh-my-zsh"
 
 - link:
     ~/.dotfiles: "" # link itself
 
+    ~/.shell:
     ~/.zshrc: zsh/zshrc
     ~/.oh-my-zsh: zsh/oh-my-zsh
     ~/.oh-my-zsh/custom/plugins/:
-      path: zsh/plugins/*
+      path: zsh/custom/plugins/*
       glob: true
 
     # TODO
