@@ -85,6 +85,9 @@ fpath+=${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-completions/src
 
 source "$ZSH/oh-my-zsh.sh"
 
+# https://github.com/zsh-users/zsh-autosuggestions/issues/511
+zle_bracketed_paste=()
+
 # User configuration
 
 # You may need to manually set your language environment
@@ -105,6 +108,9 @@ source ~/.shell/proxy.sh
 proxy_on
 
 source ~/.shell/aliases.sh
+
+# Use vim as the editor
+export EDITOR=vim
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
