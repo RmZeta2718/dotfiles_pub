@@ -40,6 +40,8 @@
 
     ~/.config/clash/Country.mmdb: clash/Country.mmdb
 
+    ~/.pythonrc:
+
 - shell:
     - git submodule sync --recursive
     - git submodule update --init --recursive

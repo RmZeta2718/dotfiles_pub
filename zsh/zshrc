@@ -98,9 +98,10 @@ source ~/.shell/functions.sh
 path_prepend "$HOME/.local/bin"
 path_prepend "$HOME/.dotfiles/bin"
 
-source ~/.shell/proxy.sh
+source ~/.shell/external.sh
 
-# turn on proxy on startup
+source ~/.shell/proxy.sh
+# turn on proxy by default
 proxy_on
 
 source ~/.shell/aliases.sh
