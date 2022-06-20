@@ -40,3 +40,12 @@ git submodule add ${git_link_to_foo} ~/.dotfiles/vim/foo  # add submodule
 If a directory is managed by both public and private Dotbot repos(eg. `~/.ssh`, `~/.config` etc.), then you can't directly symlink the directory due to conflict. The solution is to link each file in these directories, explicitly or using wildcard(glob).
 
 You can create a symlink inside a git submodule. It won't be a trouble as long as the symlink is ignored in the submodule. See `~/.oh-my-zsh/custom/` .
+
+## TODO
+
+Extra initialization steps after `./install` . They are not yet covered by Dotbot, still working on it to automate.
+
+- clash binary (It seems improper to include executable in git repo.)
+- vscode settings/extensions (keep in mind that vscode client/server use different extensions, [ref](https://code.visualstudio.com/api/advanced-topics/remote-extensions#architecture-and-extension-types))
+- linux utils (eg. tree, htop, git(latest), wget, ...)
+- conda/python env
