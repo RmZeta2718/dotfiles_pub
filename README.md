@@ -1,8 +1,8 @@
 # My Public Dotfiles
 
-I'm using [Dotbot](https://github.com/anishathalye/dotbot) to manage dotfiles.
+This repository contains public dotfiles including various configuration files, shell utilies, plugins, etc (i.e. dotfiles). There is also a private repository containing private dotfiles like ssh info. 
 
-[Tutorial](https://www.anishathalye.com/2014/08/03/managing-your-dotfiles/) on Dotbot by [Anish](https://www.anishathalye.com/) (the author, also one of the lecturers of [MIT-Missing-Semester](https://missing.csail.mit.edu/)).
+I'm using [Dotbot](https://github.com/anishathalye/dotbot) to manage dotfiles. [Tutorial](https://www.anishathalye.com/2014/08/03/managing-your-dotfiles/) on Dotbot by [Anish](https://www.anishathalye.com/) (the author, also one of the lecturers of [MIT-Missing-Semester](https://missing.csail.mit.edu/)).
 
 There are many different approaches other than Dotbot, see https://dotfiles.github.io/
 
@@ -60,4 +60,6 @@ Extra initialization steps after `./install` . They are not yet covered by Dotbo
 - clash binary (It seems improper to include executable in git repo.)
 - vscode settings/extensions (keep in mind that vscode client/server use different extensions, [ref](https://code.visualstudio.com/api/advanced-topics/remote-extensions#architecture-and-extension-types))
 - linux utils (eg. tree, htop, git(latest), wget, ...)
+- autojump
+- tldr
 - conda/python env
