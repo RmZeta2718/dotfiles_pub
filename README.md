@@ -8,13 +8,17 @@ There are many different approaches other than Dotbot, see https://dotfiles.gith
 
 ## Cheat Sheet
 
-Sync all dotfiles to a new machine:
+### Sync all dotfiles to a new machine
+
+First, [generate new ssh key](https://docs.github.com/cn/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) and [add it to github](https://docs.github.com/cn/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account) (more instructions [here](https://github.com/calvinbui/dotfiles)). Then, clone and install dotfiles.
 
 ```bash
 git clone https://github.com/RmZeta2718/dotfiles_pub.git
 cd dotfiles_pub
 ./install
 ```
+
+### Modify dotfiles
 
 Add a new dotfile `~/.foo` :
 
@@ -33,6 +37,12 @@ git submodule add ${git_link_to_foo} ~/.dotfiles/vim/foo  # add submodule
 # Add a new link for `vim` in install.conf.yaml
 ~/.dotfiles/install  # will update submodule
 # commit changes to git
+```
+
+Delete all dotfiles installed by this repo:
+
+```bash
+./uninstall
 ```
 
 ## My Tricks
