@@ -88,6 +88,10 @@ source "$ZSH/oh-my-zsh.sh"
 # https://github.com/zsh-users/zsh-autosuggestions/issues/511
 zle_bracketed_paste=()
 
+# Time to wait for additional characters in a sequence
+# https://www.johnhawthorn.com/2012/09/vi-escape-delays/
+KEYTIMEOUT=1 # corresponds to 10ms
+
 # User configuration
 
 # You may need to manually set your language environment
