@@ -1,12 +1,16 @@
 - defaults:
+    shell:
+      stdout: true
+      stderr: true
     clean:
       recursive: true # must turn off in ~/
     link:
       create: true
       # relink: true # if this repo is moved, uncomment and install to relink dotfiles
-    shell:
-      stdout: true
-      stderr: true
+
+- shell:
+    - git submodule sync --recursive
+    - git submodule update --init --recursive
 
 - clean:
     ~/:
@@ -37,7 +41,3 @@
 
     ~/.pythonrc:
     ~/.gitconfig:
-
-- shell:
-    - git submodule sync --recursive
-    - git submodule update --init --recursive
