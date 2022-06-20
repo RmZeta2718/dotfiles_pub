@@ -8,10 +8,6 @@
       stdout: true
       stderr: true
 
-- create:
-    ~/.ssh:
-      mode: 0700
-
 - clean:
     ~/:
       recursive: false
