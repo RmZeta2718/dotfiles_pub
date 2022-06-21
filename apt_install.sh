@@ -47,6 +47,9 @@ packages=(
     git
     tree
     htop
+    python3
+    # https://linuxpip.org/python-is-python3/
+    python-is-python3  # ubuntu has python2 by default before 20.04
 )
 
 # Update the list of available packages and versions
