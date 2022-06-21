@@ -59,7 +59,6 @@ Extra initialization steps after `./install` . They are not yet covered by Dotbo
 
 - clash binary (It seems improper to include executable in git repo.)
 - vscode settings/extensions (keep in mind that vscode client/server use different extensions, [ref](https://code.visualstudio.com/api/advanced-topics/remote-extensions#architecture-and-extension-types))
-- linux utils (eg. tree, htop, git(latest), wget, ...)
 - autojump
 - tldr
 - conda/python env

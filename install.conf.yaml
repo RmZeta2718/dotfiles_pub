@@ -9,8 +9,10 @@
       # relink: true # if this repo is moved, uncomment and install to relink dotfiles
 
 - shell:
-    - git submodule sync --recursive
-    - git submodule update --init --recursive
+    - [bash apt_install.sh, "Install apt packages."]
+    - [chsh -s "$(which zsh)", "Change default shell."]
+    - [git submodule sync --recursive, "Sync submodule"]
+    - [git submodule update --init --recursive, "Init submodule"]
 
 - clean:
     ~/:
