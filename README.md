@@ -13,7 +13,7 @@ There are many different approaches other than Dotbot, see https://dotfiles.gith
 First, [generate new ssh key](https://docs.github.com/cn/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) and [add it to github](https://docs.github.com/cn/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account) (more instructions [here](https://github.com/calvinbui/dotfiles)). Then, clone and install dotfiles.
 
 ```bash
-git clone https://github.com/RmZeta2718/dotfiles_pub.git
+git clone git@github.com:RmZeta2718/dotfiles_pub.git
 cd dotfiles_pub
 ./install
 ```
@@ -51,7 +51,7 @@ If a directory is managed by both public and private Dotbot repos(eg. `~/.ssh`, 
 
 You can create a symlink inside a git submodule. See `~/.oh-my-zsh/custom/` . Note:
 - The symlink path should be ignored in the submodule.
-- The symlink should be created after clone (submodule update) , order specified in `install.conf.yaml` .
+- The symlink should be created after clone (submodule update) , order specified in `install.conf.yaml` . If clone failed during install, uninstall all symlinks (`./uninstall`), then clone/install again. 
 
 ## TODO
 
