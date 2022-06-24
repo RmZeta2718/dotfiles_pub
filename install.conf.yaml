@@ -11,7 +11,10 @@
 
 - shell:
     - [bash apt_install.sh, "Install apt packages."]
-    - [chsh -s "$(which zsh)", "Change default shell."]
+    - [
+        if test "$(basename -- "$SHELL")" != "zsh"; then chsh -s $(which zsh); fi,
+        "Change default shell.",
+      ]
     - [git submodule sync --recursive, "Sync submodule"]
     - [git submodule update --init --recursive, "Init submodule"]
     - [(cd autojump && ./install.py), "Install autojump"] # https://github.com/wting/autojump#manual
