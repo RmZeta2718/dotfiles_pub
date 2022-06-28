@@ -17,7 +17,7 @@
       ]
     - [git submodule sync --recursive, "Sync submodule"]
     - [git submodule update --init --recursive, "Init submodule"]
-    - [(cd autojump && ./install.py), "Install autojump"] # https://github.com/wting/autojump#manual
+    - [(cd autojump && ./install.py > /dev/null), "Install autojump"] # https://github.com/wting/autojump#manual
 
 # ssh file permissions, see https://superuser.com/a/1559867
 - create:
