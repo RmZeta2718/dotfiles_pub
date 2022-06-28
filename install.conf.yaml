@@ -10,7 +10,7 @@
       # relink: true # if this repo is moved, uncomment and install to relink dotfiles
 
 - shell:
-    - [bash apt_install.sh, "Install apt packages."]
+    # - [bash bin/apt_install.sh, "Install apt packages."]
     - [
         if test "$(basename -- "$SHELL")" != "zsh"; then chsh -s "$(which zsh)"; fi,
         "Change default shell.",
