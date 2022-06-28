@@ -12,7 +12,7 @@
 - shell:
     - [bash apt_install.sh, "Install apt packages."]
     - [
-        if test "$(basename -- "$SHELL")" != "zsh"; then chsh -s $(which zsh); fi,
+        if test "$(basename -- "$SHELL")" != "zsh"; then chsh -s "$(which zsh)"; fi,
         "Change default shell.",
       ]
     - [git submodule sync --recursive, "Sync submodule"]
@@ -39,11 +39,9 @@
     ~/.dotfiles: "" # link itself
 
     ~/.shell:
+    ~/.zsh:
     ~/.zshrc: zsh/zshrc
     ~/.oh-my-zsh: zsh/oh-my-zsh
-    ~/.oh-my-zsh/custom/plugins/:
-      path: zsh/custom/plugins/*
-      glob: true
 
     # TODO
     # ~/.config:

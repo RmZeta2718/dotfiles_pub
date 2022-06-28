@@ -49,9 +49,11 @@ Delete all dotfiles installed by this repo:
 
 If a directory is managed by both public and private Dotbot repos(eg. `~/.ssh`, `~/.config` etc.), then you can't directly symlink the directory due to conflict. The solution is to link each file in these directories, explicitly or using wildcard(glob).
 
+<!-- 
 You can create a symlink inside a git submodule. See `~/.oh-my-zsh/custom/` . Note:
 - The symlink path should be ignored in the submodule.
 - The symlink should be created after clone (submodule update) , order specified in `install.conf.yaml` . If clone failed during install, uninstall all symlinks (`./uninstall`), then clone/install again. 
+-->
 
 ## TODO
 
