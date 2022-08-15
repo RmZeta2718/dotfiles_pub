@@ -9,16 +9,6 @@
       create: true
       # relink: true # if this repo is moved, uncomment and install to relink dotfiles
 
-- shell:
-    # - [bash bin/apt_install.sh, "Install apt packages."]
-    - [
-        if test "$(basename -- "$SHELL")" != "zsh"; then chsh -s "$(which zsh)"; fi,
-        "Change default shell.",
-      ]
-    - [git submodule sync --recursive, "Sync submodule"]
-    - [git submodule update --init --recursive, "Init submodule"]
-    - [(cd autojump && ./install.py > /dev/null), "Install autojump"] # https://github.com/wting/autojump#manual
-
 # ssh file permissions, see https://superuser.com/a/1559867
 - create:
     ~/.ssh:
@@ -53,3 +43,13 @@
 
     ~/.pythonrc:
     ~/.gitconfig:
+
+- shell:
+    # - [bash bin/apt_install.sh, "Install apt packages."]
+    - [
+        if test "$(basename -- "$SHELL")" != "zsh"; then chsh -s "$(which zsh)"; fi,
+        "Change default shell.",
+      ]
+    - [git submodule sync --recursive, "Sync submodule"]
+    - [git submodule update --init --recursive, "Init submodule"]
+    - [(cd autojump && ./install.py > /dev/null), "Install autojump"] # https://github.com/wting/autojump#manual
