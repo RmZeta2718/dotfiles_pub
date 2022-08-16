@@ -4,4 +4,4 @@ This folder contains zsh related configs
 
 `oh-my-zsh` -> `~/.oh-my-zsh`
 
-`custom/*` -> `~/.oh-my-zsh/custom/*`
+`custom` -> `~/.zsh/custom`  (`ZSH_CUSTOM="$HOME/.zsh/custom"`)
