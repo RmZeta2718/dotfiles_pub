@@ -114,6 +114,11 @@ source ~/.shell/aliases.sh
 # Use vim as the editor
 export EDITOR=vim
 
+# Allow local customizations in the ~/.shell_local_after file
+if [ -f ~/.shell_local_after ]; then
+    source ~/.shell_local_after
+fi
+
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
 __conda_setup="$('/home/wjCloud/anaconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
