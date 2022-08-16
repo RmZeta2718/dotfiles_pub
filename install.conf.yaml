@@ -42,6 +42,7 @@
     ~/.config/clash/Country.mmdb: clash/Country.mmdb
 
     ~/.pythonrc:
+    ~/.condarc:
     ~/.gitconfig:
 
 - shell:
