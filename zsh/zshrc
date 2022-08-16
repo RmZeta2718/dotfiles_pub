@@ -108,8 +108,6 @@ path_prepend "$HOME/.dotfiles/bin"
 source ~/.shell/external.sh
 
 source ~/.shell/proxy.sh
-# turn on proxy by default
-proxy_on
 
 source ~/.shell/aliases.sh
 
