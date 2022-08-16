@@ -1,6 +1,6 @@
 - defaults:
     shell:
-      stdin: true
+      stdin: true  # input password if required
       stdout: true
       stderr: true
     clean:
