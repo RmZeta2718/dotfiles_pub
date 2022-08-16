@@ -46,10 +46,10 @@
 
 - shell:
     # - [bash bin/apt_install.sh, "Install apt packages."]
-    - [
+    - [git submodule sync --recursive, "Sync submodule"]
+    - [git submodule update --init --recursive, "Init submodule"]
+    - [  # need zsh available
         if test "$(basename -- "$SHELL")" != "zsh"; then chsh -s "$(which zsh)"; fi,
         "Change default shell.",
       ]
-    - [git submodule sync --recursive, "Sync submodule"]
-    - [git submodule update --init --recursive, "Init submodule"]
-    - [(cd autojump && ./install.py > /dev/null), "Install autojump"] # https://github.com/wting/autojump#manual
+    - [(cd autojump && ./install.py > /dev/null), "Install autojump"] # need python3 available https://github.com/wting/autojump#manual
