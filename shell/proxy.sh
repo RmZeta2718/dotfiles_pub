@@ -1,3 +1,5 @@
+#!/bin/bash
+
 proxy_grep() {
     export | grep proxy
 }

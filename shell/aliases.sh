@@ -1,3 +1,5 @@
+#!/bin/bash
+
 alias vs="code ."
 alias x="xdg-open ."
 
