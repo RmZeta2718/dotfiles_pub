@@ -57,3 +57,14 @@ here() {
 there() {
     cd "$(readlink "${there}")"
 }
+
+# show repeat lines in file
+file_repeat() {
+    if [ "$#" -ne 1 ]; then
+        echo "Usage: $0 filename"
+	return 1
+    fi
+    local file=$1
+    cat "$file" | sort | uniq -c | sort -nr | awk '{ if ($1>1&&NF>1) print $0}' | less
+}
+
