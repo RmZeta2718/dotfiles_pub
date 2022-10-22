@@ -68,7 +68,13 @@ file_repeat() {
     cat "$file" | sort | uniq -c | sort -nr | awk '{ if ($1>1&&NF>1) print $0}' | less
 }
 
+# convert CRLF to LF for all files recursively (except '.git/')
+CR2LF() {
+    find . -not \( -path ./.git -prune \) -type f -exec dos2unix {} \;
+}
+
 # print ssh server ip
 whereami() {
     echo $SSH_CONNECTION | awk '{ print $3 }'
 }
+
