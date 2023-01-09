@@ -13,6 +13,8 @@
 - create:
     ~/.ssh:
       mode: 0700
+    ~/.config:  # config should be private
+      mode: 0700
 - shell:
     - chmod 600 ssh/config # git does not track file mode (other than exec bit)
 
