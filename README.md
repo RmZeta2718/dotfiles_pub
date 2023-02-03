@@ -60,6 +60,5 @@ You can create a symlink inside a git submodule. See `~/.oh-my-zsh/custom/` . No
 Extra initialization steps after `./install` . They are not yet covered by Dotbot, still working on it to automate.
 
 - clash binary (It seems improper to include executable in git repo.)
-- vscode settings/extensions (keep in mind that vscode client/server use different extensions, [ref](https://code.visualstudio.com/api/advanced-topics/remote-extensions#architecture-and-extension-types))
 - tldr
 - conda/python env
