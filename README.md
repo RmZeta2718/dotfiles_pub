@@ -6,6 +6,10 @@ I'm using [Dotbot](https://github.com/anishathalye/dotbot) to manage dotfiles. [
 
 There are many different approaches other than Dotbot, see https://dotfiles.github.io/
 
+## Note
+
+conda init shoud be placed in `~/.shell_local_after`
+
 ## Cheat Sheet
 
 ### Sync all dotfiles to a new machine
