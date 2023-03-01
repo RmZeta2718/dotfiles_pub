@@ -56,4 +56,6 @@
         "Change default shell.",
       ]
     - [(cd autojump && ./install.py > /dev/null), "Install autojump"] # need python3 available https://github.com/wting/autojump#manual
-    - [conda init zsh > /dev/null, "Init conda"]
+    - 
+      command: conda init zsh > /dev/null && tail -n 15 ~/.zshrc >> ~/.shell_local_after && git checkout -- zsh/zshrc
+      description: Init conda and move changes to shell_local_after. Assuming conda init is last 15 lines.

@@ -8,7 +8,7 @@ There are many different approaches other than Dotbot, see https://dotfiles.gith
 
 ## Note
 
-- conda init shoud be placed in `~/.shell_local_after`
+- `conda init` shoud be placed in `~/.shell_local_after`. This is now automated by assuming `conda init zsh` append 15 lines to `~/.zshrc`.
 - vscode settings are not maintain by dotfiles, vscode has its own way to sync its [settings](https://code.visualstudio.com/docs/editor/settings-sync).
   - If you are working with vscode remote, basically you don't need to sync your settings because you settings is used on remote [by default](https://code.visualstudio.com/docs/remote/ssh#_ssh-hostspecific-settings), but you should [specify what extensions to install on remote](https://code.visualstudio.com/docs/remote/ssh#_always-installed-extensions) for that extensions are not automatically installed on remote.
 
