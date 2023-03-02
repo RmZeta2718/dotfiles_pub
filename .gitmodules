@@ -16,6 +16,9 @@
 [submodule "zsh/custom/plugins/zsh-completions"]
 	path = zsh/custom/plugins/zsh-completions
 	url = https://github.com/zsh-users/zsh-completions.git
+[submodule "zsh/custom/plugins/zsh-vi-mode"]
+	path = zsh/custom/plugins/zsh-vi-mode
+	url = https://github.com/jeffreytse/zsh-vi-mode
 [submodule "autojump"]
 	path = autojump
 	url = https://github.com/wting/autojump.git

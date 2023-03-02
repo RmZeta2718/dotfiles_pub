@@ -76,6 +76,7 @@ plugins=(
 	extract
 	command-not-found
 	autojump
+	zsh-vi-mode
 	zsh-autosuggestions
 	zsh-syntax-highlighting  # This must go at the end
 )
