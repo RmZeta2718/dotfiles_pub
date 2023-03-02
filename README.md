@@ -39,8 +39,10 @@ mv ~/.foo ~/.dotfiles/foo
 Add a git submodule (eg. plugins) `~/vim/foo` :
 
 ```bash
-mkdir -p ~/.dotfiles/vim  # make parent directory
-git submodule add ${git_link_to_foo} ~/.dotfiles/vim/foo  # add submodule
+cd ~/.dotfiles
+mkdir -p vim  # make parent directory
+# If submodule is already cloned to there, rm -rf it first
+git submodule add ${git_link_to_foo} vim/foo  # add submodule
 # Add a new link for `vim` in install.conf.yaml
 ~/.dotfiles/install  # will update submodule
 # commit changes to git
