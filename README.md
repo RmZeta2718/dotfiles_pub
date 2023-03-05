@@ -68,6 +68,5 @@ You can create a symlink inside a git submodule. See `~/.oh-my-zsh/custom/` . No
 
 Extra initialization steps after `./install` . They are not yet covered by Dotbot, still working on it to automate.
 
-- clash binary (It seems improper to include executable in git repo.)
 - tldr
 - conda/python env
