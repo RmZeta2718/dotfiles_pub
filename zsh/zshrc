@@ -84,6 +84,17 @@ plugins=(
 # zsh-completions (initialized before `source "$ZSH/oh-my-zsh.sh"`)
 fpath+=${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-completions/src
 
+# git completion for switch is not working now (23/03/15)
+# Using workaround provided by [this issue](https://github.com/ohmyzsh/ohmyzsh/issues/8105)
+# And there is a [blog](https://oliverspryn.blog/adding-git-completion-to-zsh-60f3b0e7ffbc)
+# Using this solution currently makes gco worse (losing some info, but acceptable), but gsw works
+# I guess only fpath is required (following zsh-completions plugin) because omz should do all other jobs (and this works)
+#
+# Load completion files from the ~/.zsh/completion directory.
+# zstyle ':completion:*:*:git:*' script ~/.zsh/completion/git-completion.bash
+fpath=(~/.zsh/completion $fpath)
+# autoload -Uz compinit && compinit
+
 source "$ZSH/oh-my-zsh.sh"
 
 # https://github.com/zsh-users/zsh-autosuggestions/issues/511
