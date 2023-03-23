@@ -9,7 +9,9 @@ There are many different approaches other than Dotbot, see https://dotfiles.gith
 ## Note
 
 - zsh plugins are not placed in default folder (`$ZSH/custom`), but in `ZSH_CUSTOM="$HOME/.zsh/custom"`. The default position is inside oh-my-zsh repo, causing repos (omz vs plugins) nesting with each other and hard to maintain in dotbot (clone order, dirty repo and other problems). If there is a better way, please let me know.
-- `conda init` shoud be placed in `~/.shell_local_after`. This is now automated by assuming `conda init zsh` append 15 lines to `~/.zshrc`.
+- conda
+  - `conda init` shoud be placed in `~/.shell_local_after`. This is now automated by assuming `conda init zsh` append 15 lines to `~/.zshrc`.
+  - assuming conda envs are installed in `~/.conda`, use `conda_pull` to rsync from remote.
 - vscode settings are not maintain by dotfiles, vscode has its own way to sync its [settings](https://code.visualstudio.com/docs/editor/settings-sync).
   - If you are working with vscode remote, basically you don't need to sync your settings because you settings is used on remote [by default](https://code.visualstudio.com/docs/remote/ssh#_ssh-hostspecific-settings), but you should [specify what extensions to install on remote](https://code.visualstudio.com/docs/remote/ssh#_always-installed-extensions) for that extensions are not automatically installed on remote.
 
@@ -69,4 +71,3 @@ You can create a symlink inside a git submodule. See `~/.oh-my-zsh/custom/` . No
 Extra initialization steps after `./install` . They are not yet covered by Dotbot, still working on it to automate.
 
 - tldr
-- conda/python env

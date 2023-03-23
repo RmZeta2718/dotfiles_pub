@@ -62,7 +62,7 @@ there() {
 file_repeat() {
     if [ "$#" -ne 1 ]; then
         echo "Usage: $0 filename"
-	return 1
+        return 1
     fi
     local file=$1
     cat "$file" | sort | uniq -c | sort -nr | awk '{ if ($1>1&&NF>1) print $0}' | less
@@ -78,3 +78,12 @@ whereami() {
     echo $SSH_CONNECTION | awk '{ print $3 }'
 }
 
+conda_pull() {
+    if [ "$#" -ne 1 ]; then
+        echo "conda_pull: pull ~/.conda folder from host"
+        echo "Usage: $0 host"
+        return 1
+    fi
+    local host=$1
+    rsync -avhH --partial-dir=.rsync-partial --delete $host:~/.conda ~/
+}
