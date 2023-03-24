@@ -74,3 +74,4 @@ You can create a symlink inside a git submodule. See `~/.oh-my-zsh/custom/` . No
 Extra initialization steps after `./install` . They are not yet covered by Dotbot, still working on it to automate.
 
 - tldr
+- submodule init shoud be placed before file mapping
