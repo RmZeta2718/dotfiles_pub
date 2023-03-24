@@ -14,7 +14,9 @@ There are many different approaches other than Dotbot, see https://dotfiles.gith
     - assuming conda envs are installed in `~/.conda`, use `conda_pull` to rsync from remote.
 - vscode settings are not maintain by dotfiles, vscode has its own way to sync its [settings](https://code.visualstudio.com/docs/editor/settings-sync).
     - If you are working with vscode remote, basically you don't need to sync your settings because you settings is used on remote [by default](https://code.visualstudio.com/docs/remote/ssh#_ssh-hostspecific-settings), but you should [specify what extensions to install on remote](https://code.visualstudio.com/docs/remote/ssh#_always-installed-extensions) for that extensions are not automatically installed on remote.
-- using Fira Font as powerline font (for tmux)
+- tmux:
+    - [oh-my-tmux](https://github.com/gpakosz/.tmux#bindings)
+    - using Fira Font as powerline font for tmux
 
 ## Cheat Sheet
 

@@ -10,8 +10,4 @@ alias mca="make cleanall"
 alias gh="glods --all"
 alias jst="j --stat | less"
 
-alias bb="bash build.sh"
-alias t="bash test.sh"
-
-alias shut="shutdown now"
-
+alias tm="tmux"
