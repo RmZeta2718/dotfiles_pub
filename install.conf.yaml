@@ -39,12 +39,12 @@
 
     # TODO
     # ~/.config:
-    # ~/.vim
 
     ~/.ssh/config: ssh/config
 
     ~/.config/clash/Country.mmdb: clash/Country.mmdb
 
+    ~/.vimrc:
     ~/.pythonrc:
     ~/.condarc:
     ~/.gitconfig:
