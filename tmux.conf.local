@@ -437,3 +437,11 @@ tmux_conf_uninstall_plugins_on_reload=true
 #
 # "$@"
 # # /!\ do not remove the previous line
+
+# wierd option. Setting this on tmux > 2.6 makes window rename better (path in shell and executable when running)
+# In tmux = 2.6, this is default to `on`.
+set -g allow-rename on
+# When this is `on`, it seems to ignore automatic-rename-format. The default one is also not working (`tmux show-window-options -g automatic-rename-format`)
+
+# not work, from https://stackoverflow.com/a/68043814 
+# set -g automatic-rename-format "#{?#{==:#{pane_current_command},bash},#{b:pane_current_path},#{pane_current_command}}"
