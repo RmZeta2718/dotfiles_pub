@@ -78,6 +78,11 @@ whereami() {
     echo $SSH_CONNECTION | awk '{ print $3 }'
 }
 
+# df all file systems except loop and tmpfs, sort by mounted path
+dfa() {
+    df -h | grep -Ev "loop|tmpfs" | (sed -u 1q; sort -k 6)
+}
+
 conda_pull() {
     if [ "$#" -ne 1 ]; then
         echo "conda_pull: pull ~/.conda folder from host"
