@@ -5,3 +5,7 @@
 
 # Python startup file
 export PYTHONSTARTUP=$HOME/.pythonrc
+
+# huggingface transformer
+export TRANSFORMERS_CACHE=$HOME/public/pretrain/
+
