@@ -445,3 +445,7 @@ set -g allow-rename on
 
 # not work, from https://stackoverflow.com/a/68043814 
 # set -g automatic-rename-format "#{?#{==:#{pane_current_command},bash},#{b:pane_current_path},#{pane_current_command}}"
+
+bind -r C-[ swap-window -dt -1
+bind -r C-] swap-window -dt +1
+
