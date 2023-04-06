@@ -11,3 +11,6 @@ alias gh="glods --all"
 alias jst="j --stat | less"
 
 alias tm="tmux"
+
+alias rl="rsync_pull"
+alias rp="rsync_push"
