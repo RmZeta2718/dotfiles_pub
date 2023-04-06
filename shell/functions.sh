@@ -90,5 +90,5 @@ conda_pull() {
         return 1
     fi
     local host=$1
-    rsync -avhH --partial-dir=.rsync-partial --delete $host:~/.conda ~/
+    yes | rsync_pull $host ~/.conda  # use script in ~/.dotfiles/bin
 }

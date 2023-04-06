@@ -1,0 +1,29 @@
+#!/bin/bash
+
+CMD="rsync -avhH --partial-dir=.rsync-partial --exclude '__pycache__/' --delete"
+
+COLOR_RESET="\033[0m"
+BOLD_TEXT="\033[1m"
+UNDERLINE_TEXT="\033[4m"
+
+if [[ "$#" -lt 2 || "$#" -gt 3 ]]; then
+    echo "rsync_pull: pull project folder from host"
+    echo "Usage: $0 <hostname> <remote_folder> [local_path]"
+    return 1
+fi
+host=$1
+remote_folder=$(realpath $2)
+local_path=$(dirname $remote_folder)  # dst does not contain basename
+
+if [[ "$#" -eq 3 ]]; then
+    local_path=$(dirname $(realpath $3))  # overwrite
+fi
+
+# Prompt for confirmation
+echo -en "Sync: $BOLD_TEXT$host:$UNDERLINE_TEXT$remote_folder$COLOR_RESET -> $BOLD_TEXT$UNDERLINE_TEXT$local_path$COLOR_RESET? [Y/n] " 
+read -r
+
+# Execute rsync if the user confirms or doesn't enter anything
+if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
+    $CMD $host:$remote_folder $local_path
+fi
