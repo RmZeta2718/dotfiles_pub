@@ -9,7 +9,7 @@ UNDERLINE_TEXT="\033[4m"
 if [[ "$#" -lt 2 || "$#" -gt 3 ]]; then
     echo "rsync_pull: pull project folder from host"
     echo "Usage: $0 <hostname> <remote_folder> [local_path]"
-    return 1
+    exit 1
 fi
 host=$1
 remote_folder=$(realpath $2)
