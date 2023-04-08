@@ -3,7 +3,7 @@
 # This script runs $cmd on each of the $hosts in parallel and print output
 # By default cmd=gpustat and hosts are all hostnames that contains gpu
 
-cmd='$HOME/.local/bin/gpustat --force-color'
+cmd='/usr/local/anaconda3/bin/gpustat --force-color'
 
 hosts=$(sed -rn 's/^\s*Host\s+(.*)\s*/\1/ip' ~/.ssh/config* | grep 'gpu')
 # config* for config and config_local on my machine
