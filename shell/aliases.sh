@@ -14,3 +14,6 @@ alias tm="tmux"
 
 alias rl="rsync_pull"
 alias rp="rsync_push"
+
+alias lsport="lsof -nPi"
+
