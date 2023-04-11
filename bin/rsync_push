@@ -16,7 +16,7 @@ host=$2
 remote_path=$(realpath $local_folder)  # realpath to allow relative path, only abs path works on remote
 
 if [[ "$#" -eq 3 ]]; then
-    remote_path=$(realpath $3)  # overwrite
+    remote_path=$3  # overwrite
 fi
 
 # Prompt for confirmation

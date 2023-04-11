@@ -12,7 +12,7 @@ if [[ "$#" -lt 2 || "$#" -gt 3 ]]; then
     exit 1
 fi
 host=$1
-remote_folder=$(realpath $2)  # realpath to allow relative path, only abs path works on remote
+remote_folder=$2
 local_path=$remote_folder
 
 if [[ "$#" -eq 3 ]]; then
