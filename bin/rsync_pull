@@ -12,18 +12,19 @@ if [[ "$#" -lt 2 || "$#" -gt 3 ]]; then
     exit 1
 fi
 host=$1
-remote_folder=$(realpath $2)
-local_path=$(dirname $remote_folder)  # dst does not contain basename
+remote_folder=$(realpath $2)  # realpath to allow relative path, only abs path works on remote
+local_path=$remote_folder
 
 if [[ "$#" -eq 3 ]]; then
-    local_path=$(dirname $(realpath $3))  # overwrite
+    local_path=$3  # overwrite
 fi
 
 # Prompt for confirmation
-echo -en "Sync: $BOLD_TEXT$host:$UNDERLINE_TEXT$remote_folder$COLOR_RESET -> $BOLD_TEXT$UNDERLINE_TEXT$local_path$COLOR_RESET? [Y/n] " 
+echo -en "Sync: $BOLD_TEXT$host:$UNDERLINE_TEXT$remote_folder/$COLOR_RESET -> $BOLD_TEXT$UNDERLINE_TEXT$local_path$COLOR_RESET? [Y/n] " 
 read -r
 
 # Execute rsync if the user confirms or doesn't enter anything
 if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
-    $CMD $host:$remote_folder $local_path
+    # trailing slash matters: https://unix.stackexchange.com/a/605502
+    $CMD $host:$remote_folder/ $local_path
 fi
