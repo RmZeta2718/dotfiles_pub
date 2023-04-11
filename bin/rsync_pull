@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CMD="rsync -avhH --partial-dir=.rsync-partial --exclude '__pycache__/' --delete"
+CMD="rsync -avhH --partial-dir=.rsync-partial --exclude __pycache__/ --delete"
 
 COLOR_RESET="\033[0m"
 BOLD_TEXT="\033[1m"
