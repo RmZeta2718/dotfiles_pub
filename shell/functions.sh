@@ -90,5 +90,5 @@ conda_pull() {
         return 1
     fi
     local host=$1
-    yes | rsync_pull $host ~/.conda  # use script in ~/.dotfiles/bin
+    yes | rsync_script -l -r $host -d ~/.conda  # use script in ~/.dotfiles/bin
 }

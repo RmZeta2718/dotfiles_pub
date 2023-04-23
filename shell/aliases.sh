@@ -12,8 +12,8 @@ alias jst="j --stat | less"
 
 alias tm="tmux"
 
-alias rl="rsync_pull"
-alias rp="rsync_push"
+alias rl="rsync_script -l"
+alias rp="rsync_script -p"
 
 alias lsport="lsof -nPi"
 
