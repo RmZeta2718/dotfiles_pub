@@ -2,126 +2,183 @@
 
 import argparse
 import os
+from dataclasses import dataclass
+from typing import Optional
+
+parser: argparse.ArgumentParser = None # type: ignore
 
 def main():
     args = parse_args()
     confirm(args)
-    if args.push:
-        push(args)
-    elif args.pull:
-        pull(args)
-    else:
-        assert False, 'Neither push or pull'
+    rsync(args.src, args.dst)
 
-def push(args):
-    call_rsync(args.src, f'{args.remote}{args.dst}')
 
-def pull(args):
-    call_rsync(f'{args.remote}{args.src}', args.dst)
+@dataclass
+class Path:
+    url: str
+
+    host: str = ''
+    path: str = ''
+
+    is_dir_cache: Optional[bool] = None
+
+    def __post_init__(self):
+        split = self.url.split(':')
+        if len(split) == 1:  # <path> only
+            if split[0] == '':  # path empty
+                parser.error('Only path on remote can be auto-completed.')
+            split = [''] + split
+        elif len(split) == 2:  # <host>:<path>
+            split[0] += ':'  # append ':' to host
+        elif len(split) > 2:
+            parser.error('Multiple `:` found')
+        assert len(split) == 2
+        self.host, self.path = split
+
+    def has_host(self):
+        return len(self.host) != 0
+
+    def has_path(self):
+        return len(self.path) != 0
+
+    def is_dir(self):
+        if self.has_host():  # src is on remote
+            if self.is_dir_cache is not None:
+                return self.is_dir_cache  # fast path, return cached result
+            # slow path, test and cache
+            host = self.host[:-1]  # remote trailing :
+            print(f'Checking if src is dir on remote {host}')
+            cmd = f'ssh {host} "test -d {self.path}"'
+            # return code explain: https://stackoverflow.com/a/6466753/17347885
+            rc = os.WEXITSTATUS(os.system(cmd))
+            # 0 is dir, 1 is not dir, 255 is ssh error
+            if rc == 255:
+                # ssh connection failed, ssh itself already printed error msg
+                exit()
+            # cache result to prevent redundant tests on remote
+            self.is_dir_cache = rc == 0
+            print(f'Done! {self.path} is{" " if self.is_dir_cache else " NOT" } dir')
+            return self.is_dir_cache
+        else:  # src is local path
+            return os.path.isdir(self.path)
+
+    def __str__(self):
+        return f'{self.host}{self.path}'
+
+
+@dataclass
+class Args:
+    src: Path
+    dst: Path
+
+    def __post_init__(self):
+        # convert str to Path on init
+        if isinstance(self.src, str):
+            self.src = Path(self.src)
+        if isinstance(self.dst, str):
+            self.dst = Path(self.dst)
+
+        if self.src.has_host() and self.dst.has_host():
+            parser.error('At most one of the paths can be remote')
+        elif self.src.has_host():
+            if not self.src.has_path():
+                assert self.dst.has_path()
+                self.src.path = self.format_path(self.dst.path)
+                self.format_src_on_auto_completion()
+            # else: all path given
+        elif self.dst.has_host():
+            if not self.dst.has_path():
+                assert self.src.has_path()
+                self.dst.path = self.format_path(self.src.path)
+                self.format_src_on_auto_completion()
+            # else: all path given
+        else:  # local rsync
+            print('INFO: local rsync')
+
+    # format to absolute path (not realpath), but use ~ if possible
+    @staticmethod
+    def format_path(path: str):
+        path = os.path.expanduser(path)
+        path = os.path.abspath(path)
+        home_dir = os.path.expanduser('~')
+        if path.startswith(home_dir):
+            path = os.path.join('~', os.path.relpath(path, home_dir))
+        return path
+
+    # In auto-completion, path is the same. So if src is dir, trailing slash is needed. Appending in case forgotten.
+    def format_src_on_auto_completion(self):
+        if self.src.is_dir() and not self.src.path.endswith('/'):
+            print('INFO: Adding trailing slash to src because it is a directory')
+            self.src.path += '/'
+
+
+def parse_args():
+    parser_description = """\
+rsync with automatic remote path completion
+Note that trailing slash in src path matters: https://unix.stackexchange.com/a/605502
+Local path format: `<path>`
+Remote path format: `<host>:[<path>]`
+At most one of src and dst can be remote
+
+Use cases:
+- push current folder to host in the same path:
+    rsync_script ./ host:
+- pull folder from host in the same path:
+    rsync_script host: folder
+- push current folder to host with different username or different folder name:
+    rsync_script folder/ host:~/new_name
+- rsync local path:
+    rsync_script folder/ /path/to/new/location
+"""
+
+    global parser  # so parser.error is available anywhere
+    parser = argparse.ArgumentParser(
+        'rsync_script', description=parser_description,
+        formatter_class=argparse.RawDescriptionHelpFormatter,  # preserve \n in description
+    )
+    # use positional arguments to avoid specifying -s -d
+    parser.add_argument('src', type=str, help='source')
+    parser.add_argument('dst', type=str, help='destination')
+    cmd_args = parser.parse_args()
+    args = Args(cmd_args.src, cmd_args.dst)
+    
+    return args
+
+def confirm(args: Args):
+    COLOR_RESET = "\033[0m"
+    BOLD_TEXT = "\033[1m"
+    UNDERLINE_TEXT = "\033[4m"
+
+    dst_hint = args.dst.path
+
+    # It's unnecessary to check endswith '/' because python basename is empty if has trailing slash
+    # Check explicitly only for readability
+    if args.src.is_dir() and not args.src.path.endswith('/'):
+        # hint that the directory will be copied to dst instead of synced
+        dst_hint = os.path.join(dst_hint, os.path.basename(args.src.path))
+    msg = (
+        f'Sync: {BOLD_TEXT}{args.src.host}{UNDERLINE_TEXT}{args.src.path}{COLOR_RESET}'
+        f' -> {BOLD_TEXT}{args.dst.host}{UNDERLINE_TEXT}{dst_hint}{COLOR_RESET}? [Y/n] '
+    )
+    try:
+        confirmation = input(msg)
+    except KeyboardInterrupt:
+        print('\nQuit rsync.')
+        exit()
+    if confirmation != '' and not confirmation.lower().startswith('y'):
+        print('Quit rsync.')
+        exit()
+
 
 # src or dst should contain host
-def call_rsync(src: str, dst: str):
-    cmd = f'rsync -avhH --partial-dir=.rsync-partial --exclude __pycache__/ --delete "{src}" "{dst}"'
+def rsync(src: Path, dst: Path):
+    cmd = f'rsync -avhH --partial-dir=.rsync-partial --exclude __pycache__/ --delete {src} {dst}'
+    print(cmd)
     if os.system(cmd) != 0:  # interrupted
         print('Quit rsync in progress.')
         exit()
     print('Finished command:')
     print(cmd)
-
-def parse_args():
-    parser_description = """\
-push/pull file or folder to/from another path.
-Note that trailing slash in src matters: https://unix.stackexchange.com/a/605502
-
-Use cases:
-- push current folder to host in the same path:
-    rsync_script -p -s ./ -r host
-- pull folder from host in the same path:
-    rsync_script -l -r host -d folder
-- push current folder to host with different username or different folder name:
-    rsync_script -p -s folder/ -r host -d "~/new_name"
-- rsync local path:
-    rsync_script -p -s folder/ -d /path/to/new/location
-"""
-
-    parser = argparse.ArgumentParser(
-        'rsync_script', description=parser_description,
-        formatter_class=argparse.RawDescriptionHelpFormatter,  # preserve \n in description
-    )
-    mode = parser.add_mutually_exclusive_group(required=True)
-    mode.add_argument('-p', '--push', action='store_true', help='push to host')
-    mode.add_argument('-l', '--pull', action='store_true', help='pull from host')
-    parser.add_argument('-r', '--remote', default='', type=str, help='remote host')
-    parser.add_argument('-s', '--src', type=str, help='source')
-    parser.add_argument('-d', '--dst', type=str, help='destination')
-    # use positional arguments to avoid specifying -s -d
-    # parser.add_argument('src', type=str, help='source')
-    # nargs='?': optional positional arguments, https://stackoverflow.com/a/4480202/17347885
-    # parser.add_argument('dst', nargs='?', type=str, help='destination')
-    args = parser.parse_args()
-
-    if args.remote != '':
-        args.remote += ':'
-
-    # fill src or dst if not provided
-    if args.src is not None and args.dst is None:
-        if args.remote == '':
-            parser.error('--src and --dst should be specified in local rsync')
-        # realpath in python allow invalid path, while the shell version does not by default (unless -m).
-        args.dst = os.path.realpath(args.src)
-        if args.push and os.path.isdir(args.src) and not args.src.endswith('/'):
-            # if dst is auto filled in push and src is dir, trailing slash is needed. Appending in case forgotten.
-            print('INFO: Adding trailing slash to src because it is a directory')
-            args.src += '/'
-    elif args.dst is not None and args.src is None:
-        if args.remote == '':
-            parser.error('--src and --dst should be specified in local rsync')
-        args.src = os.path.realpath(args.dst)
-        if args.pull and os.path.isdir(args.dst):
-            # print('INFO: Adding trailing slash to src because dst is a directory')
-            args.src += '/'  # append trailing slash to copy folder content if pulling and dst is folder
-        # otherwise, it's push and we don't know dst, or pulling file, so no trailing slash
-    elif args.src is None and args.dst is None:
-        # The only way to 'at least one': https://stackoverflow.com/a/6723066/17347885
-        parser.error('At least one of --src or --dst should be provided.')
-    # else: src and dst is not None, ok
-
-    return args
-
-def confirm(args):
-    COLOR_RESET = "\033[0m"
-    BOLD_TEXT = "\033[1m"
-    UNDERLINE_TEXT = "\033[4m"
-
-    src: str = args.src
-    dst: str = args.dst
-    # It's unnecessary to check endswith '/' because python basename is empty if has trailing slash
-    # Check explicitly only for readability
-    if is_src_dir(args) and not src.endswith('/'):
-        # hint that the directory will be copied to dst instead of synced
-        dst = os.path.join(dst, os.path.basename(src))
-    src_remote = args.remote if args.pull else ''
-    dst_remote = args.remote if args.push else ''
-    msg = (
-        f'Sync: {BOLD_TEXT}{src_remote}{UNDERLINE_TEXT}{src}{COLOR_RESET}'
-        f' -> {BOLD_TEXT}{dst_remote}{UNDERLINE_TEXT}{dst}{COLOR_RESET}? [Y/n] '
-    )
-    try:
-        confirmation = input(msg).lower()
-    except KeyboardInterrupt:
-        print('\nQuit rsync.')
-        exit()
-    if confirmation != '' and not confirmation.startswith('y'):
-        print('Quit rsync.')
-        exit()
-    
-def is_src_dir(args):
-    if args.pull and args.remote != '':  # src is remote path
-        remote = args.remote[:-1]  # remote trailing :
-        cmd = f'ssh {remote} "test -d \'{args.src}\'"'
-        return os.system(cmd) == 0  # 0 is dir, return code explain: https://stackoverflow.com/a/6466753/17347885
-    else:  # src is local path
-        return os.path.isdir(args.src)
 
 
 if __name__ == '__main__':
