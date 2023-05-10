@@ -16,7 +16,7 @@ done
 wait  # for ssh to finish
 
 for host in $hosts; do
-    echo "Host: $host"
+    # echo "Host: $host"
     buffer=buf_$host
     echo "${!buffer}"
 done
