@@ -6,3 +6,18 @@
 	path = ~/.gitconfig_local
 [core]
 	quotepath = off
+
+# delta style git diff, doc: https://dandavison.github.io/delta/get-started.html
+[core]
+    pager = delta
+[interactive]
+    diffFilter = delta --color-only
+[delta]
+    navigate = true  # use n and N keybindings to move between files in large diffs
+    line-numbers = true
+    side-by-side = true
+[merge]
+    conflictstyle = diff3
+[diff]
+    colorMoved = default
+

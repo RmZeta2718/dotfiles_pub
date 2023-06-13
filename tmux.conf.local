@@ -465,3 +465,5 @@ unbind -n MouseDown3Status
 # bind-key -n M-8 select-window -t 8
 # bind-key -n M-9 select-window -t 9
 
+# https://dandavison.github.io/delta/tips-and-tricks/using-delta-with-tmux.html
+set -ga terminal-overrides ",xterm-256color:Tc"
