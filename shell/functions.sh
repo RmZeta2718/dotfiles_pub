@@ -83,6 +83,18 @@ dfa() {
     df -h | grep -Ev "loop|tmpfs" | (sed -u 1q; sort -k 6)
 }
 
+lsport() {
+    # -a : use AND mode
+    # -c ^ssh : exclude command ssh* (eg. ssh, sshd)
+    # -u ... : specify all user (exclude root and other irrelevant UIDs)
+    # -i $@ : allow filtering ports (eg. `lsport :9090`)
+    # |& grep -v fuse: ignore stat() fuse error
+    # sed; sort : sort by column 3 first (USER), and then by col 9 (port)
+    sudo lsof -a -c ^ssh -u $(ls /home | tr '\n' ',') -i $@ |& \
+    grep -Ev "can't stat\(\) fuse|Output information may be incomplete." | \
+    (sed -u 1q; sort -k 3,3 -k 9)
+}
+
 conda_pull() {
     if [ "$#" -ne 1 ]; then
         echo "conda_pull: pull ~/.conda folder from host"

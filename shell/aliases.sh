@@ -15,6 +15,3 @@ alias tm="tmux"
 alias rl="rsync_py -l"
 alias rp="rsync_py -p"
 alias rs="rsync_script"
-
-alias lsport="lsof -nPi"
-
