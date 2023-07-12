@@ -9,7 +9,9 @@
 
 # delta style git diff, doc: https://dandavison.github.io/delta/get-started.html
 [core]
-    pager = delta
+    # use delta but fallback to less if delta is not installed
+    # see https://stackoverflow.com/questions/63432334/dynamically-choose-git-pager
+    pager = "pager=$(which delta); ${pager:-less}"
 [interactive]
     diffFilter = delta --color-only
 [delta]
