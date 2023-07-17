@@ -15,3 +15,7 @@ alias tm="tmux"
 alias rl="rsync_py -l"
 alias rp="rsync_py -p"
 alias rs="rsync_script"
+
+# https://superuser.com/a/1486196
+alias iftop="TERM=xterm iftop"
+
