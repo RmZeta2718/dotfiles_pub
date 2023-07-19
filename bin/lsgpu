@@ -5,7 +5,7 @@
 
 cmd='/usr/local/anaconda3/bin/gpustat --force-color'
 
-hosts=$(sed -rn 's/^\s*Host\s+(.*)\s*/\1/ip' ~/.ssh/config* | grep 'gpu')
+hosts=$(sed -rn 's/^\s*Host\s+(.*)\s*/\1/ip' ~/.ssh/config* | grep 'g')
 # config* for config and config_local on my machine
 
 for host in $hosts; do
