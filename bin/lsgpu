@@ -6,7 +6,7 @@
 import subprocess
 from concurrent.futures import ProcessPoolExecutor
 
-cmd='/usr/local/anaconda3/bin/gpustat --force-color'
+cmd='/usr/local/anaconda3/bin/gpustat --force-color --gpuname-width 10'
 
 # run command on remote machine using ssh, return lines of output
 def ssh_run(host):
