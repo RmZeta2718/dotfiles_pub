@@ -104,3 +104,20 @@ conda_pull() {
     local host=$1
     yes | rsync_script $host: ~/.conda  # use script in ~/.dotfiles/bin
 }
+
+# make sudo available for functions and aliases
+# https://unix.stackexchange.com/a/438712
+# OP is bash, this is adapted to zsh builtins
+Sudo() {
+    local firstArg=$1
+    local argType=$(type -w $firstArg | cut -d ' ' -f 2)
+    if [ $argType = function ]; then
+        shift && command sudo $SHELL -c "$(declare -f $firstArg);$firstArg $*"
+    elif [ $argType = alias ]; then
+        alias sudo='\sudo '
+        eval "sudo $@"
+    else
+        command sudo "$@"
+    fi
+}
+
