@@ -22,6 +22,12 @@ dfu() {
     )
 }
 
+# pull dotfiles, but skip install (useful with only small changes)
+dfl() {
+    (cd ~/dotfiles/dotfiles_pub && git pull --ff-only)
+    (cd ~/dotfiles/dotfiles_private && git pull --ff-only)
+}
+
 # Create a directory and cd into it
 mcd() {
     mkdir -p "${1}" && cd "${1}"
