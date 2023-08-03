@@ -57,7 +57,7 @@ class Path:
                 exit()
             # cache result to prevent redundant tests on remote
             self.is_dir_cache = rc == 0
-            print(f'Done! {self.path} is{" " if self.is_dir_cache else " NOT" } dir')
+            print(f'Done! {self.path} is {"" if self.is_dir_cache else "NOT "}dir')
             return self.is_dir_cache
         else:  # src is local path
             return os.path.isdir(self.path)
