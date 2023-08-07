@@ -23,9 +23,16 @@ dfu() {
 }
 
 # pull dotfiles, but skip install (useful with only small changes)
+# always color for dfp: https://unix.stackexchange.com/a/304025
 dfl() {
-    (cd ~/dotfiles/dotfiles_pub && git pull --ff-only)
-    (cd ~/dotfiles/dotfiles_private && git pull --ff-only)
+    (cd ~/dotfiles/dotfiles_pub && git -c color.ui=always pull --ff-only)
+    (cd ~/dotfiles/dotfiles_private && git -c color.ui=always pull --ff-only)
+}
+
+# push dotfiles to all known gpu hosts (or actually pull on all)
+# depend on bin/lsgpu and shell/functions.sh:dfl (this file) on hosts
+dfp() {
+    lsgpu -c 'source ~/.shell/functions.sh; dfl'
 }
 
 # Create a directory and cd into it
