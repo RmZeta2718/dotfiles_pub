@@ -53,24 +53,6 @@ mcd() {
 #     PIP_REQUIRE_VIRTUALENV="" pip3 "$@"
 # }
 
-there="$HOME/.shell.here"
-
-here() {
-    local loc
-    if [ "$#" -eq 1 ]; then
-        loc=$(realpath "$1")
-    else
-        loc=$(realpath ".")
-    fi
-    ln -sfn "${loc}" "$there"
-    echo "here -> $(readlink $there)"
-}
-
-
-there() {
-    cd "$(readlink "${there}")"
-}
-
 # show repeat lines in file
 file_repeat() {
     if [ "$#" -ne 1 ]; then
