@@ -15,7 +15,7 @@ alias rs="rsync_script"
 alias LL="ll -L"
 
 # https://superuser.com/a/1486196
-alias iftop="TERM=xterm sudo iftop"
+alias iftop="TERM=xterm sudo iftop -Bm 100M"
 
 # du sort by size, with intermediate results
 # https://stackoverflow.com/a/6075520
