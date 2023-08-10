@@ -4,23 +4,28 @@
 # by default, cmd=gpustat and hosts are all hostnames that begins with g
 
 import argparse
-import itertools
 import subprocess
+from itertools import repeat
 from concurrent.futures import ProcessPoolExecutor
 
 CMD_DEFAULT = '/usr/local/anaconda3/bin/gpustat --force-color --gpuname-width 10'
 
 # run command on remote machine using ssh, return lines of output
-def ssh_run(host, cmd):
-    return subprocess.run(f"ssh {host} -T '{cmd}'",
-        shell=True, text=True,
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-    ).stdout
+def ssh_run(host: str, cmd: str, timeout: float):
+    try:
+        return subprocess.run(f"ssh {host} '{cmd}'",
+            shell=True, text=True,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            timeout=timeout,
+        ).stdout
+    except subprocess.TimeoutExpired as e:
+        return str(e) + '\n'
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('lsgpu')
     parser.add_argument('-c', '--cmd', type=str, default=CMD_DEFAULT, help='command to execute on hosts')
-    parser.add_argument('--hosts', nargs='+', type=str, help='list of hosts to query')
+    parser.add_argument('-o', '--hosts', nargs='+', type=str, help='list of hosts to query')
+    parser.add_argument('-t', '--timeout', type=float, default=10, help='command timeout in seconds (float)')
     args = parser.parse_args()
     if args.hosts is not None:  # query hosts in arguments
         hosts = args.hosts
@@ -28,6 +33,7 @@ if __name__ == '__main__':
         hosts = subprocess.getoutput(r"sed -rn 's/^\s*Host\s+(.*)\s*/\1/ip' ~/.ssh/config* | grep '^g'").split()
         # config* for config and config_local on my machine
     with ProcessPoolExecutor(max_workers=len(hosts)) as executor:
-        for host, data in zip(hosts, executor.map(ssh_run, hosts, itertools.repeat(args.cmd))):
+        procs = executor.map(ssh_run, hosts, repeat(args.cmd), repeat(args.timeout))
+        for host, data in zip(hosts, procs):
             print(f"Host {host}:")
             print(data, end='')
