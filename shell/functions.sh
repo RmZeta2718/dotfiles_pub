@@ -96,6 +96,54 @@ lsport() {
     (sed -u 1q; sort -k 3,3 -k 9)
 }
 
+# show sshd_config on all nodes
+# rely on lsgpu
+lssshd() {
+    lsgpu -c 'grep --color=always -E "^(PasswordAuthentication|PubkeyAuthentication|PermitRootLogin)" /etc/ssh/sshd_config'
+}
+
+# prompt for sudo password and save to variable $password
+prompt_sudo() {
+    # mimic sudo prompt
+    echo -n "[sudo] password for $USER: "
+    read -s password
+    echo ""
+    # https://serverfault.com/q/967859
+    sudo_pswd="echo '$password' | sudo -Sp ''"
+}
+
+# change sshd PasswordAuthentication on all nodes
+# rely on lsgpu
+_sshd_pswd() {
+    if [ "$#" -ne 1 ]; then
+        echo "_sshd_pswd: change PasswordAuthentication in /etc/ssh/sshd_config"
+        echo "Usage: $0 yes|no"
+        return 1
+    fi
+    prompt_sudo
+    lsgpu -c " \
+        $sudo_pswd sed -i 's/^PasswordAuthentication.*/PasswordAuthentication $1/' /etc/ssh/sshd_config && \
+        $sudo_pswd systemctl restart sshd.service && \
+        echo 'PasswordAuthentication set to $1'"
+}
+
+# change sshd PubkeyAuthentication to yes on all nodes
+sshd_pswd_on() {
+    _sshd_pswd yes
+}
+
+# change sshd PubkeyAuthentication to no on all nodes
+sshd_pswd_off() {
+    _sshd_pswd no
+}
+
+# rely on lsgpu
+create_users_all_nodes() {
+    prompt_sudo
+    # run users.sh on all nodes
+    lsgpu -c "$sudo_pswd /mnt/public/app/users/users.sh"
+}
+
 conda_pull() {
     if [ "$#" -ne 1 ]; then
         echo "conda_pull: pull ~/.conda folder from host"
