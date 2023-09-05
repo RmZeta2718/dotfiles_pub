@@ -13,6 +13,3 @@ alias jst="j --stat | less"
 alias tm="tmux"
 alias rs="rsync_script"
 alias LL="ll -L"
-
-# https://superuser.com/a/1486196
-alias iftop="TERM=xterm sudo iftop -Bm 100M"

@@ -117,21 +117,19 @@ KEYTIMEOUT=1 # corresponds to 10ms
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
 
+source ~/.shell/admin.sh
+source ~/.shell/aliases.sh
+source ~/.shell/external.sh
 source ~/.shell/functions.sh
+source ~/.shell/proxy.sh
 
 path_prepend "$HOME/.local/bin"
 path_prepend "$HOME/.dotfiles/bin"
 
-source ~/.shell/external.sh
-
-source ~/.shell/proxy.sh
-
-source ~/.shell/aliases.sh
-
 # Use vim as the editor
 export EDITOR=vim
 
-# Allow local customizations in the ~/.shell_local_after file
+# Allow local customizations in the ~/.shell_local_after file (such as conda path)
 if [ -f ~/.shell_local_after ]; then
     source ~/.shell_local_after
 fi
