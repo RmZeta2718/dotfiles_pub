@@ -103,7 +103,8 @@ lssshd() {
 }
 
 # prompt for sudo password and save to variable $password
-prompt_sudo() {
+# scope of prompt_sudo should be limited by () to prevent leaking $password
+_prompt_sudo() {
     # mimic sudo prompt
     echo -n "[sudo] password for $USER: "
     read -s password
@@ -120,11 +121,13 @@ _sshd_pswd() {
         echo "Usage: $0 yes|no"
         return 1
     fi
-    prompt_sudo
-    lsgpu -c " \
-        $sudo_pswd sed -i 's/^PasswordAuthentication.*/PasswordAuthentication $1/' /etc/ssh/sshd_config && \
-        $sudo_pswd systemctl restart sshd.service && \
-        echo 'PasswordAuthentication set to $1'"
+    (  # scope of prompt_sudo
+        _prompt_sudo
+        lsgpu -c " \
+            $sudo_pswd sed -i 's/^PasswordAuthentication.*/PasswordAuthentication $1/' /etc/ssh/sshd_config && \
+            $sudo_pswd systemctl restart sshd.service && \
+            echo 'PasswordAuthentication set to $1'"
+    )
 }
 
 # change sshd PubkeyAuthentication to yes on all nodes
@@ -139,9 +142,11 @@ sshd_pswd_off() {
 
 # rely on lsgpu
 create_users_all_nodes() {
-    prompt_sudo
-    # run users.sh on all nodes
-    lsgpu -c "$sudo_pswd /mnt/public/app/users/users.sh"
+    (  # scope of prompt_sudo
+        _prompt_sudo
+        # run users.sh on all nodes
+        lsgpu -c "$sudo_pswd /mnt/public/app/users/users.sh"
+    )
 }
 
 conda_pull() {
