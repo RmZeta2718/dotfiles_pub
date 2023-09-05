@@ -8,6 +8,10 @@ import subprocess
 from itertools import repeat
 from concurrent.futures import ProcessPoolExecutor
 
+class color:
+   BOLD = '\033[1m'
+   END = '\033[0m'
+
 CMD_DEFAULT = '/usr/local/anaconda3/bin/gpustat --force-color --gpuname-width 10'
 
 # run command on remote machine using ssh, return lines of output
@@ -43,5 +47,5 @@ if __name__ == '__main__':
     with ProcessPoolExecutor(max_workers=len(hosts)) as executor:
         procs = executor.map(ssh_run, hosts, repeat(args.cmd), repeat(args.timeout), repeat(args.verbose))
         for host, data in zip(hosts, procs):
-            print(f"Host {host}:")
-            print(data, end='')
+            print(f"{color.BOLD}Host {host}:{color.END}")
+            print(data)
