@@ -12,10 +12,13 @@ CMD_DEFAULT = '/usr/local/anaconda3/bin/gpustat --force-color --gpuname-width 10
 
 # run command on remote machine using ssh, return lines of output
 def ssh_run(host: str, cmd: str, timeout: float, verbose: bool = False):
+    # replace ' with '"'"' to allow single quotes in cmd
+    # https://stackoverflow.com/a/1250279/17347885
+    cmd = cmd.replace("'", "'\"'\"'")
+    ssh_cmd = f"ssh {host} '{cmd}'"
+    if verbose:
+        print(ssh_cmd)
     try:
-        ssh_cmd = f"ssh {host} '{cmd}'"
-        if verbose:
-            print(ssh_cmd)
         return subprocess.run(
             ssh_cmd,
             shell=True, text=True,
