@@ -78,6 +78,12 @@ dfa() {
     df -h | grep -Ev "loop|tmpfs" | (sed -u 1q; sort -k 6)
 }
 
+# du sort by size, with intermediate results
+# https://stackoverflow.com/a/6075520
+dus() {
+    (echo '==========='; du -hd1 "$@") | tee /dev/tty | sort -h
+}
+
 lsport() {
     # -a : use AND mode
     # -c ^ssh : exclude command ssh* (eg. ssh, sshd)
