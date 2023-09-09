@@ -68,11 +68,19 @@ fi
         # target file is any file in the pkg with the max # of hard links
         target_file=$(find "$pkg" -type f -links "$count" -print -quit)
         envs=$(
+            n_found=0
             for env in "$envs_dir"/*; do
                 # https://unix.stackexchange.com/a/201922
-                # find for target in each env and print env name
+                # find for target in each env
                 # quit because at most one target in each env
-                find "$env" -samefile "$target_file" -printf "$(basename "$env")\n" -quit
+                found_file=$(find "$env" -samefile "$target_file" -print -quit)
+                if [ -n "$found_file" ]; then  # file not empty
+                    basename "$env"  # print env name
+                    ((n_found++))
+                    if [ "$n_found" -eq "$envs_count" ]; then
+                        break # quick exit if all envs are found
+                    fi
+                fi
             done |
                 # sort and join by space
                 sort | paste -sd " "
