@@ -23,24 +23,23 @@ echo "disk space saved by hard links:"
     find "$pkgs_dir" -type f -links +2 -printf "(%n-2)*%s\n"
 ) |
     # concat all expressoins and format to human readable
-    paste -sd+ | bc | numfmt --to=iec --suffix=B
+    paste -sd+ | bc | numfmt --to=iec
 echo ""
 
-echo "package reused count:"
-reuse_table=$(
+reuse_count() {
     for pkg in "$pkgs_dir"/*; do
         # https://unix.stackexchange.com/q/280805
         # get the number of hard links of each file, subtract 1 (for pkgs/ itself) and then print the max # of hard links
         # for folders with no files, output is empty string, and no influence on the final combined result
         find "$pkg" -type f -printf "%n-1\n" | bc | sort -nu | tail -n 1
         # why check all files: hard links count should be consistent in $pkg, but some times it's not
-    done |
-        # combine hard links count for all pkgs
-        sort -n | uniq -c
-)
+    done
+}
 
+echo "package reused count:"
 echo "#pkg    #reuse"
-echo "$reuse_table"
+# combine hard links count for all pkgs
+reuse_count | sort -n | uniq -c
 echo ""
 
 # prompt user for yes/no
@@ -49,51 +48,44 @@ if [[ $REPLY =~ ^[Nn]$ ]]; then
     exit
 fi
 
-(
+get_detail() {
     echo "#reuse,disk usage,envs,pkg"
+    temp_dir=$(mktemp -d)
     for pkg in "$pkgs_dir"/*; do
         count=$(find "$pkg" -type f -printf "%n\n" | sort -nu | tail -n 1)
         if [ -z "$count" ]; then
             continue # no files in this pkg
         fi
-        envs_count=$(echo "$count-1" | bc)
         # count = pkgs + envs
-        disk_usage=$(du -sh "$pkg" | cut -f1)
+        envs_count=$(echo "$count-1" | bc)
+        # du in background
+        du -sh "$pkg" > "$temp_dir/du.output" &
 
         if [ "$count" -eq 1 ]; then # no env using this pkg
+            wait # for du
+            disk_usage=$(cut -f1 < "$temp_dir/du.output")
             echo "$envs_count,$disk_usage,,$pkg"
             continue
         fi
 
         # target file is any file in the pkg with the max # of hard links
         target_file=$(find "$pkg" -type f -links "$count" -print -quit)
-        envs=$(
-            n_found=0
-            for env in "$envs_dir"/*; do
-                # https://unix.stackexchange.com/a/201922
-                # find for target in each env
-                # quit because at most one target in each env
-                found_file=$(find "$env" -samefile "$target_file" -print -quit)
-                if [ -n "$found_file" ]; then  # file not empty
-                    basename "$env"  # print env name
-                    ((n_found++))
-                    if [ "$n_found" -eq "$envs_count" ]; then
-                        break # quick exit if all envs are found
-                    fi
-                fi
-            done |
-                # sort and join by space
-                sort | paste -sd " "
-        )
-
-        # debug files
-        # files=$(find "$pkg" -type f -links "$count" -print0 -quit | xargs -0 find "$conda_path" -samefile)
-        # echo files:
-        # echo "$files"
+        for env in "$envs_dir"/*; do
+            # https://unix.stackexchange.com/a/201922
+            # find for target in each env concurrently
+            # quit because at most one target in each env
+            env_name="$(basename "$env")"
+            find "$env" -samefile "$target_file" -printf "$env_name\n" -quit > "$temp_dir/$env_name.find.output" &
+        done
+        wait # for du & find 
+        disk_usage=$(cut -f1 < "$temp_dir/du.output")
+        envs=$(cat "$temp_dir"/*.find.output | sort | paste -sd " ")
 
         echo "$envs_count,$disk_usage,$envs,$pkg"
     done
-) |
-    # https://stackoverflow.com/a/6075520
-    # print progress during sort (by count and du)
-    tee /dev/tty | sort -t',' -k1,1 -k2,2 -h | less
+    rm -rf "$temp_dir"
+}
+
+# https://stackoverflow.com/a/6075520
+# print progress during sort (by count and du)
+get_detail | tee /dev/tty | sort -t',' -k1,1 -k2,2 -h | less
