@@ -18,7 +18,10 @@ du -sh "$conda_path"
 echo "disk space saved by hard links:"
 # find all files with more than 2 hard links, print disk space saved by hard links
 # saved count = total - pkg(1) - one env(1)
-find "$pkgs_dir" -type f -links +2 -printf "(%n-2)*%s\n" |
+(
+    echo 0 # incase find output nothing
+    find "$pkgs_dir" -type f -links +2 -printf "(%n-2)*%s\n"
+) |
     # concat all expressoins and format to human readable
     paste -sd+ | bc | numfmt --to=iec --suffix=B
 echo ""
