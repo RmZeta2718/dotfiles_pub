@@ -14,3 +14,6 @@ proxy_on() {
 proxy_off() {
     unset https_proxy http_proxy all_proxy
 }
+
+alias proxy_test="curl -I google.com"
+
