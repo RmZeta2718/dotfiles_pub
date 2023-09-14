@@ -80,5 +80,11 @@ conda_pull() {
         return 1
     fi
     local host=$1
-    yes | rsync_script "$host": ~/.conda  # rely on ~/.dotfiles/bin
+    yes | rsync_script "$host": ~/.conda # rely on ~/.dotfiles/bin
+}
+
+# https://stackoverflow.com/a/46071447/17347885
+# Print PYthon IMPort Path for a specific module
+pyimp() {
+    python -c "import $1 as _; print(_.__path__[0])"
 }
