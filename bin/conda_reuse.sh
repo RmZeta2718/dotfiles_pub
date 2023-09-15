@@ -26,6 +26,19 @@ echo "disk space saved by hard links:"
     paste -sd+ | bc | numfmt --to=iec
 echo ""
 
+echo "size of each reuse level:"
+echo "#disk usage #env using"
+max_link=$(find "$pkgs_dir" -type f -links +1 -printf "%n\n" | sort -n | tail -1)
+for link in $(seq 1 "$max_link"); do
+    disk_usage=$(find "$pkgs_dir" -type f -links "$link" -printf "%s\n" | paste -sd+ | bc | numfmt --to=iec --padding 11)
+    if [ -z "$disk_usage" ]; then
+        continue
+    fi
+    # subtract 1 for pkgs/ itself
+    echo "$disk_usage $((link - 1))"
+done
+echo ""
+
 reuse_count() {
     for pkg in "$pkgs_dir"/*; do
         # https://unix.stackexchange.com/q/280805
@@ -35,9 +48,8 @@ reuse_count() {
         # why check all files: hard links count should be consistent in $pkg, but some times it's not
     done
 }
-
-echo "package reused count:"
-echo "#pkg    #reuse"
+echo "how many pkgs are used by multiple envs:"
+echo "#pkg    #env using"
 # combine hard links count for all pkgs
 reuse_count | sort -n | uniq -c
 echo ""
@@ -59,11 +71,11 @@ get_detail() {
         # count = pkgs + envs
         envs_count=$(echo "$count-1" | bc)
         # du in background
-        du -sh "$pkg" > "$temp_dir/du.output" &
+        du -sh "$pkg" >"$temp_dir/du.output" &
 
         if [ "$count" -eq 1 ]; then # no env using this pkg
-            wait # for du
-            disk_usage=$(cut -f1 < "$temp_dir/du.output")
+            wait                    # for du
+            disk_usage=$(cut -f1 <"$temp_dir/du.output")
             echo "$envs_count,$disk_usage,,$pkg"
             continue
         fi
@@ -75,10 +87,10 @@ get_detail() {
             # find for target in each env concurrently
             # quit because at most one target in each env
             env_name="$(basename "$env")"
-            find "$env" -samefile "$target_file" -printf "$env_name\n" -quit > "$temp_dir/$env_name.find.output" &
+            find "$env" -samefile "$target_file" -printf "$env_name\n" -quit >"$temp_dir/$env_name.find.output" &
         done
-        wait # for du & find 
-        disk_usage=$(cut -f1 < "$temp_dir/du.output")
+        wait # for du & find
+        disk_usage=$(cut -f1 <"$temp_dir/du.output")
         envs=$(cat "$temp_dir"/*.find.output | sort | paste -sd " ")
 
         echo "$envs_count,$disk_usage,$envs,$pkg"
