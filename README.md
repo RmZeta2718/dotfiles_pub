@@ -59,6 +59,16 @@ Delete all dotfiles installed by this repo:
 ./uninstall
 ```
 
+Upgrade all submodules:
+
+```bash
+git submodule update --recursive --remote
+# commit changes
+# on another machine, run dfu, that is:
+git pull
+./install  # the key is: git submodule sync --recursive
+```
+
 ## My Tricks
 
 If a directory is managed by both public and private Dotbot repos(eg. `~/.ssh`, `~/.config` etc.), then you can't directly symlink the directory due to conflict. The solution is to link each file in these directories, explicitly or using wildcard(glob).
