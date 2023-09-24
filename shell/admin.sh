@@ -79,9 +79,7 @@ lsport() {
     # -i $@ : allow filtering ports (eg. `lsport :9090`)
     # |& grep -v fuse: ignore stat() fuse error
     # sed; sort : sort by column 3 first (USER), and then by col 9 (port)
-    sudo lsof -a -c ^ssh -u "$(ls /home | tr '\n' ',')" -i "$@" |& \
-    grep -Ev "can't stat\(\) fuse|Output information may be incomplete." | \
-    (sed -u 1q; sort -k 3,3 -k 9)
+    sudo lsof -wa -c ^ssh -u "$(ls /home | tr '\n' ',')" -i "$@" |& (sed -u 1q; sort -k 3,3 -k 9)
 }
 
 # df all file systems except loop and tmpfs, sort by mounted path
