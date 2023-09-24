@@ -73,13 +73,14 @@ create_users_all_nodes() {
 }
 
 lsport() {
+    # -w : no warning
     # -a : use AND mode
+    # +c0 : display full command
     # -c ^ssh : exclude command ssh* (eg. ssh, sshd)
     # -u ... : specify all user (exclude root and other irrelevant UIDs)
     # -i $@ : allow filtering ports (eg. `lsport :9090`)
-    # |& grep -v fuse: ignore stat() fuse error
     # sed; sort : sort by column 3 first (USER), and then by col 9 (port)
-    sudo lsof -wa -c ^ssh -u "$(ls /home | tr '\n' ',')" -i "$@" |& (sed -u 1q; sort -k 3,3 -k 9)
+    sudo lsof -wa +c0 -c ^ssh -u "$(ls /home | tr '\n' ',')" -i "$@" |& (sed -u 1q; sort -k 3,3 -k 9)
 }
 
 # df all file systems except loop and tmpfs, sort by mounted path
