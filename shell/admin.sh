@@ -59,7 +59,7 @@ sshd_pswd_off() {
 
 # show sshd_config on all nodes
 # rely on lsgpu
-lssshd() {
+lsshd() {
     lsgpu -c 'grep --color=always -E "^(PasswordAuthentication|PubkeyAuthentication|PermitRootLogin)" /etc/ssh/sshd_config'
 }
 
