@@ -109,6 +109,9 @@ zle_bracketed_paste=()
 # https://www.johnhawthorn.com/2012/09/vi-escape-delays/
 KEYTIMEOUT=1 # corresponds to 10ms
 
+# https://github.com/jeffreytse/zsh-vi-mode#command-line-initial-mode
+ZVM_LINE_INIT_MODE=$ZVM_MODE_INSERT
+
 # User configuration
 
 # You may need to manually set your language environment
