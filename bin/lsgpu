@@ -5,14 +5,17 @@
 
 import argparse
 import subprocess
-from itertools import repeat
 from concurrent.futures import ProcessPoolExecutor
+from itertools import repeat
+
 
 class color:
-   BOLD = '\033[1m'
-   END = '\033[0m'
+    BOLD = "\033[1m"
+    END = "\033[0m"
 
-CMD_DEFAULT = '/usr/local/anaconda3/bin/gpustat --force-color --gpuname-width 10'
+
+CMD_DEFAULT = "/usr/local/anaconda3/bin/gpustat --force-color --gpuname-width 10"
+
 
 # run command on remote machine using ssh, return lines of output
 def ssh_run(host: str, cmd: str, timeout: float, verbose: bool = False):
@@ -25,19 +28,26 @@ def ssh_run(host: str, cmd: str, timeout: float, verbose: bool = False):
     try:
         return subprocess.run(
             ssh_cmd,
-            shell=True, text=True,
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            shell=True,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             timeout=timeout,
         ).stdout
     except subprocess.TimeoutExpired as e:
-        return str(e) + '\n'
+        return str(e) + "\n"
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser('lsgpu')
-    parser.add_argument('-c', '--cmd', type=str, default=CMD_DEFAULT, help='command to execute on hosts')
-    parser.add_argument('-o', '--hosts', nargs='+', type=str, help='list of hosts to query')
-    parser.add_argument('-t', '--timeout', type=float, default=10, help='command timeout in seconds (float)')
-    parser.add_argument('-v', '--verbose', action='store_true', help='print all executed commands')
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser("lsgpu")
+    parser.add_argument(
+        "-c", "--cmd", type=str, default=CMD_DEFAULT, help="command to execute on hosts, default gpustat"
+    )
+    parser.add_argument("-o", "--hosts", nargs="+", type=str, help="list of hosts to query")
+    parser.add_argument(
+        "-t", "--timeout", type=float, default=10, help="command timeout in seconds (float), default 10s"
+    )
+    parser.add_argument("-v", "--verbose", action="store_true", help="print all executed commands")
     args = parser.parse_args()
     if args.hosts is not None:  # query hosts in arguments
         hosts = args.hosts
