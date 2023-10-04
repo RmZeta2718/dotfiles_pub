@@ -13,3 +13,5 @@ alias jst="j --stat | less"
 alias tm="tmux"
 alias rs="rsync_script"
 alias LL="ll -L"
+
+alias ca="conda activate"
