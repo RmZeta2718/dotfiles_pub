@@ -74,16 +74,17 @@ ZSH_CUSTOM="$HOME/.zsh/custom"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
-	git
-	tmux
-	colored-man-pages
-	colorize
-	extract
-	command-not-found
-	autojump
-	zsh-vi-mode
-	zsh-autosuggestions
-	zsh-syntax-highlighting  # This must go at the end
+    git
+    tmux
+    docker
+    colored-man-pages
+    colorize
+    extract
+    command-not-found
+    autojump
+    zsh-vi-mode
+    zsh-autosuggestions
+    zsh-syntax-highlighting # This must go at the end
 )
 
 # zsh-completions (initialized before `source "$ZSH/oh-my-zsh.sh"`)
