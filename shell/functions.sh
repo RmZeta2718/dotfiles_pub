@@ -88,3 +88,42 @@ conda_pull() {
 pyimp() {
     python -c "import $1 as _; print(_.__path__[0])"
 }
+
+# remove all files in ckpt directory except runs/ (for tensorboard)
+clean_ckpt() {
+    # loop over all args except the first one (which is the command name)
+    for dir in "${@:1}"; do
+        _clean_ckpt "$dir"
+    done
+}
+
+_clean_ckpt() {
+    if [ "$#" -ne 1 ]; then
+        echo "_clean_ckpt: remove all files in ckpt directory except runs/ (for tensorboard)"
+        echo "Usage: $0 dir"
+        return 1
+    fi
+    dir=$1
+    if [ ! -d "$dir/runs" ]; then
+        echo "$dir/runs/ not found, so it's not considered as a checkpoint directory"
+        return 1
+    fi
+
+    # remove anything but $dir/runs/
+    echo "rm to be executed in $dir:"
+    find "$dir" -mindepth 1 -maxdepth 1 -not -name runs \
+        -exec echo rm -rf '{}' \;
+
+    # prompt user for yes/no in zsh
+    if ! read -q "choice?Do rm? [y/N] "; then
+        echo ""
+        echo "Abort"
+        return 0
+    fi
+
+    echo ""
+    echo "Cleaning"
+    find "$dir" -mindepth 1 -maxdepth 1 -not -name runs \
+        -exec rm -rf '{}' \;
+    echo "Done"
+}
