@@ -17,17 +17,49 @@ class color:
 CMD_DEFAULT = "/usr/local/anaconda3/bin/gpustat --force-color --gpuname-width 10"
 
 
-# run command on remote machine using ssh, return lines of output
-def ssh_run(host: str, cmd: str, timeout: float, verbose: bool = False):
-    # replace ' with '"'"' to allow single quotes in cmd
-    # https://stackoverflow.com/a/1250279/17347885
-    cmd = cmd.replace("'", "'\"'\"'")
-    ssh_cmd = f"ssh {host} '{cmd}'"
+def parse_args():
+    parser = argparse.ArgumentParser("lsgpu")
+    parser.add_argument(
+        "-c", "--cmd", type=str, default=CMD_DEFAULT, help="command to execute on hosts, default gpustat"
+    )
+    parser.add_argument("-o", "--hosts", nargs="+", type=str, help="list of hosts to query")
+    parser.add_argument(
+        "-t", "--timeout", type=float, default=10, help="command timeout in seconds (float), default 10s"
+    )
+    parser.add_argument("-v", "--verbose", action="store_true", help="print all executed commands")
+    template_help = (
+        "By default, --cmd is run on remote using default ssh template. But when --template is on, --cmd is treated as template. "
+        "So {host} in --cmd will be replaced by actual host and the script will iterate through hosts for you."
+    )
+    parser.add_argument("-T", "--template", action="store_true", help=template_help)
+    args = parser.parse_args()
+    if args.hosts is None:
+        args.hosts = subprocess.getoutput(r"sed -rn 's/^\s*Host\s+(.*)\s*/\1/ip' ~/.ssh/config* | grep '^g'").split()
+        # config* for config and config_local on my machine
+    if args.template and "{host}" not in args.cmd:
+        parser.error("When using template, specify {host} in --cmd")
+    return args
+
+
+def parse_cmd(host: str, cmd: str, template: bool, verbose: bool):
+    if template:
+        # replace {host} with host
+        parsed_cmd = cmd.format(host=host)
+    else:
+        # replace ' with '"'"' to allow single quotes in cmd
+        # https://stackoverflow.com/a/1250279/17347885
+        cmd = cmd.replace("'", "'\"'\"'")
+        # run command on remote machine
+        parsed_cmd = f"ssh {host} '{cmd}'"
     if verbose:
-        print(ssh_cmd)
+        print(parsed_cmd)
+    return parsed_cmd
+
+
+def run_cmd(cmd: str, timeout: float):
     try:
         return subprocess.run(
-            ssh_cmd,
+            cmd,
             shell=True,
             text=True,
             stdout=subprocess.PIPE,
@@ -38,24 +70,20 @@ def ssh_run(host: str, cmd: str, timeout: float, verbose: bool = False):
         return str(e) + "\n"
 
 
+def format_output(output: str, host: str):
+    return f"{color.BOLD}Host {host}:{color.END}\n{output}"
+
+
+# run command on one machine using ssh or on local, return command output
+def run_one(host: str, cmd: str, timeout: float, template: bool, verbose: bool):
+    parsed_cmd = parse_cmd(host, cmd, template, verbose)
+    output = run_cmd(parsed_cmd, timeout)
+    return format_output(output, host)
+
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser("lsgpu")
-    parser.add_argument(
-        "-c", "--cmd", type=str, default=CMD_DEFAULT, help="command to execute on hosts, default gpustat"
-    )
-    parser.add_argument("-o", "--hosts", nargs="+", type=str, help="list of hosts to query")
-    parser.add_argument(
-        "-t", "--timeout", type=float, default=10, help="command timeout in seconds (float), default 10s"
-    )
-    parser.add_argument("-v", "--verbose", action="store_true", help="print all executed commands")
-    args = parser.parse_args()
-    if args.hosts is not None:  # query hosts in arguments
-        hosts = args.hosts
-    else:
-        hosts = subprocess.getoutput(r"sed -rn 's/^\s*Host\s+(.*)\s*/\1/ip' ~/.ssh/config* | grep '^g'").split()
-        # config* for config and config_local on my machine
-    with ProcessPoolExecutor(max_workers=len(hosts)) as executor:
-        procs = executor.map(ssh_run, hosts, repeat(args.cmd), repeat(args.timeout), repeat(args.verbose))
-        for host, data in zip(hosts, procs):
-            print(f"{color.BOLD}Host {host}:{color.END}")
+    args = parse_args()
+    with ProcessPoolExecutor(max_workers=len(args.hosts)) as executor:
+        procs = executor.map(run_one, args.hosts, *map(repeat, (args.cmd, args.timeout, args.template, args.verbose)))
+        for data in procs:
             print(data)
