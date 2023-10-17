@@ -32,7 +32,7 @@ dfl() {
 # push dotfiles to all known gpu hosts (or actually pull on all)
 # depend on bin/lsgpu and shell/functions.sh:dfl (this file) on hosts
 dfp() {
-    gp && lsgpu -c 'source ~/.shell/functions.sh; dfl'
+    gp && lsgpu -t 30 -c 'source ~/.shell/functions.sh; dfl'
 }
 
 # Create a directory and cd into it
