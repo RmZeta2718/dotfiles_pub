@@ -35,6 +35,11 @@ dfp() {
     gp && lsgpu -t 30 -c 'source ~/.shell/functions.sh; dfl'
 }
 
+# rs dotfiles from local machine to all hosts
+dfs() {
+    lsgpu -Tc 'yes | rsync_script ~/dotfiles {host}:'
+}
+
 # Create a directory and cd into it
 mcd() {
     mkdir -p "${1}" && cd "${1}" || return
