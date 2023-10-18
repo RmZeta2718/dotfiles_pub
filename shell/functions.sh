@@ -37,7 +37,7 @@ dfp() {
 
 # rs dotfiles from local machine to all hosts
 dfs() {
-    lsgpu -Tc 'yes | rsync_script ~/dotfiles {host}:'
+    lsgpu -t 5 -Tc 'yes | rsync_script ~/dotfiles/ {host}:'
 }
 
 # Create a directory and cd into it
