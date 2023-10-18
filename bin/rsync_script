@@ -175,7 +175,8 @@ def confirm(args: Args):
 
 # src or dst should contain host
 def rsync(src: Path, dst: Path):
-    cmd = f"rsync -avhH --partial-dir=.rsync-partial --exclude __pycache__/ --delete {src} {dst}"
+    # --delete-excluded: https://serverfault.com/a/582858
+    cmd = f"rsync -avhH --partial-dir=.rsync-partial --exclude __pycache__/ --delete --delete-excluded {src} {dst}"
     print(cmd)
     if os.system(cmd) != 0:  # interrupted
         print("Quit rsync in progress.")
