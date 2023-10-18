@@ -58,32 +58,43 @@ def parse_cmd(host: str, cmd: str, template: bool, verbose: bool):
 
 def run_cmd(cmd: str, timeout: float):
     try:
-        return subprocess.run(
+        rst = subprocess.run(
             cmd,
             shell=True,
             text=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             timeout=timeout,
-        ).stdout
+        )
+        return rst.stdout, rst.returncode
     except subprocess.TimeoutExpired as e:
-        return str(e) + "\n"
+        return str(e) + "\n", 1
+
+
+def format_host(host: str):
+    return f"{color.BOLD}Host {host}:{color.END}"
 
 
 def format_output(output: str, host: str):
-    return f"{color.BOLD}Host {host}:{color.END}\n{output}"
+    return f"{format_host(host)}\n{output}"
 
 
 # run command on one machine using ssh or on local, return command output
 def run_one(host: str, cmd: str, timeout: float, template: bool, verbose: bool):
     parsed_cmd = parse_cmd(host, cmd, template, verbose)
-    output = run_cmd(parsed_cmd, timeout)
-    return format_output(output, host)
+    output, rc = run_cmd(parsed_cmd, timeout)
+    output = format_output(output, host)
+    return output, rc
 
 
 if __name__ == "__main__":
     args = parse_args()
     with ProcessPoolExecutor(max_workers=len(args.hosts)) as executor:
         procs = executor.map(run_one, args.hosts, *map(repeat, (args.cmd, args.timeout, args.template, args.verbose)))
-        for data in procs:
-            print(data)
+        all_rc = []
+        for output, rc in procs:
+            print(output)
+            all_rc.append(rc)
+        if any(all_rc):  # any of the hosts exited with non-zero code
+            print("Warning: some hosts exited with non-zero code:")
+            print("\t".join(f"{format_host(host)}{rc}" for host, rc in zip(args.hosts, all_rc) if rc))
