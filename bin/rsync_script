@@ -14,6 +14,15 @@ def main():
     rsync(args.src, args.dst)
 
 
+def run_cmd(cmd: str):
+    # return code explain: https://stackoverflow.com/a/6466753/17347885
+    rc = os.WEXITSTATUS(os.system(cmd))
+    if rc == 255:
+        # ssh connection failed, ssh itself already printed error msg
+        exit(rc)
+    return rc
+
+
 @dataclass
 class Path:
     url: str
@@ -50,14 +59,9 @@ class Path:
             host = self.host[:-1]  # remote trailing :
             print(f"Checking if src is dir on remote {host}")
             cmd = f'ssh {host} "test -d {self.path}"'
-            # return code explain: https://stackoverflow.com/a/6466753/17347885
-            rc = os.WEXITSTATUS(os.system(cmd))
-            # 0 is dir, 1 is not dir, 255 is ssh error
-            if rc == 255:
-                # ssh connection failed, ssh itself already printed error msg
-                exit()
             # cache result to prevent redundant tests on remote
-            self.is_dir_cache = rc == 0
+            # 0 is dir, 1 is not dir, 255 is ssh error (already dealt with)
+            self.is_dir_cache = run_cmd(cmd) == 0
             print(f'Done! {self.path} is {"" if self.is_dir_cache else "NOT "}dir')
             return self.is_dir_cache
         else:  # src is local path
@@ -178,9 +182,7 @@ def rsync(src: Path, dst: Path):
     # --delete-excluded: https://serverfault.com/a/582858
     cmd = f"rsync -avhH --partial-dir=.rsync-partial --exclude __pycache__/ --delete --delete-excluded {src} {dst}"
     print(cmd)
-    if os.system(cmd) != 0:  # interrupted
-        print("Quit rsync in progress.")
-        exit()
+    run_cmd(cmd)
     print("Finished command:")
     print(cmd)
 
