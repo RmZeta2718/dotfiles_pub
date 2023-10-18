@@ -22,7 +22,9 @@
 [submodule "autojump"]
 	path = autojump
 	url = https://github.com/wting/autojump.git
-
 [submodule "tmux"]
 	path = tmux
 	url = git@github.com:gpakosz/.tmux.git
+[submodule "zsh/custom/themes/powerlevel10k"]
+	path = zsh/custom/themes/powerlevel10k
+	url = https://github.com/romkatv/powerlevel10k.git

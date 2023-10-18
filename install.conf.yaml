@@ -1,6 +1,6 @@
 - defaults:
     shell:
-      stdin: true  # input password if required
+      stdin: true # input password if required
       stdout: true
       stderr: true
     clean:
@@ -13,7 +13,7 @@
 - create:
     ~/.ssh:
       mode: 0700
-    ~/.config:  # config should be private
+    ~/.config: # config should be private
       mode: 0700
 - shell:
     - chmod 600 ssh/config # git does not track file mode (other than exec bit)
@@ -33,7 +33,6 @@
     ~/.shell:
     ~/.zsh:
     ~/.zshrc: zsh/zshrc
-    ~/.oh-my-zsh: zsh/oh-my-zsh
     ~/.tmux.conf: tmux/.tmux.conf
     ~/.tmux.conf.local:
 
@@ -53,13 +52,13 @@
     # - [bash bin/apt_install.sh, "Install apt packages."]
     - [git submodule sync --recursive, "Sync submodule"]
     - [git submodule update --init --recursive, "Init submodule"]
-    - [  # need zsh available
+    - [
+        # need zsh available
         if test "$(basename -- "$SHELL")" != "zsh"; then chsh -s "$(which zsh)"; fi,
         "Change default shell.",
       ]
     - [(cd autojump && ./install.py > /dev/null), "Install autojump"] # need python3 available https://github.com/wting/autojump#manual
-    - 
-      command: |
+    - command: |
         if ! grep -Fq "# <<< conda initialize <<<" ~/.shell_local_after; then
           conda init zsh > /dev/null && tail -n 15 ~/.zshrc >> ~/.shell_local_after && git checkout -- zsh/zshrc
         fi
