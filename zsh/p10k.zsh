@@ -1003,7 +1003,7 @@
   #####################[ anaconda: conda environment (https://conda.io/) ]######################
   # Anaconda environment color.
   typeset -g POWERLEVEL9K_ANACONDA_FOREGROUND=0
-  typeset -g POWERLEVEL9K_ANACONDA_BACKGROUND=4
+  typeset -g POWERLEVEL9K_ANACONDA_BACKGROUND=6
 
   # Anaconda segment format. The following parameters are available within the expansion.
   #
