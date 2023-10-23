@@ -8,3 +8,5 @@ ServerAliveInterval 60
 # close session if no activity after 60 keep alive (i.e. 1 hour)
 ServerAliveCountMax 60
 
+# skip entering yes: https://serverfault.com/a/977776
+StrictHostKeyChecking accept-new
