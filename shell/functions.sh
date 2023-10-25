@@ -132,3 +132,9 @@ _clean_ckpt() {
         -exec rm -rf '{}' \;
     echo "Done"
 }
+
+# https://unix.stackexchange.com/a/502812
+# https://github.com/mikesart/inotify-info
+inotify-info() {
+    _inotify-info "$@" | less -S
+}
