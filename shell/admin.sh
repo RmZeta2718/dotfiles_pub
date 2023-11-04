@@ -94,9 +94,10 @@ dus() {
     ) | tee /dev/tty | sort -h
 }
 
+# cat log files, in reversed order (recent logs first)
 # by Edge copilot
 # shellcheck disable=SC2012
-viewlogs() {
+clog() {
     if [ "$#" -ne 1 ]; then
         echo "Usage: $0 log_file"
         return 1
@@ -107,12 +108,19 @@ viewlogs() {
             while read -r file; do
                 echo "=== file: $file ==="
                 if [[ $file == *.gz ]]; then
-                    zcat "$file" | tac # in reversed order, so recent logs are shown first
+                    # in reversed order per file, so recent logs are shown first
+                    # (files are named by recency, so ls is not reversed)
+                    zcat "$file" | tac
                 else
                     tac "$file"
                 fi
             done
-    ) | less
+    )
+}
+
+# less log files
+llog() {
+    clog "$@" | less
 }
 
 # https://superuser.com/a/1486196
