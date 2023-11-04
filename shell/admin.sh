@@ -94,5 +94,26 @@ dus() {
     ) | tee /dev/tty | sort -h
 }
 
+# by Edge copilot
+# shellcheck disable=SC2012
+viewlogs() {
+    if [ "$#" -ne 1 ]; then
+        echo "Usage: $0 log_file"
+        return 1
+    fi
+    log_file=$1
+    (
+        ls -v "${log_file}"* |
+            while read -r file; do
+                echo "=== file: $file ==="
+                if [[ $file == *.gz ]]; then
+                    zcat "$file" | tac # in reversed order, so recent logs are shown first
+                else
+                    tac "$file"
+                fi
+            done
+    ) | less
+}
+
 # https://superuser.com/a/1486196
 alias iftop="TERM=xterm sudo iftop -Bm 100M"
