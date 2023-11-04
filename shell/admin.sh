@@ -63,15 +63,6 @@ lsshd() {
     lsgpu -c 'grep --color=always -E "^(PasswordAuthentication|PubkeyAuthentication|PermitRootLogin)" /etc/ssh/sshd_config'
 }
 
-# rely on lsgpu
-create_users_all_nodes() {
-    ( # scope of prompt_sudo
-        _prompt_sudo
-        # run users.sh on all nodes
-        lsgpu -c "$sudo_pswd /mnt/public/app/users/users.sh"
-    )
-}
-
 lsport() {
     # -w : no warning
     # -a : use AND mode
