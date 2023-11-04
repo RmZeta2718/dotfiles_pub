@@ -9,7 +9,7 @@ Sudo() {
     local argType=$(type -w $firstArg | cut -d ' ' -f 2)
     if [ $argType = function ]; then
         shift && command sudo $SHELL -c "$(declare -f $firstArg);$firstArg $*"
-        elif [ $argType = alias ]; then
+    elif [ $argType = alias ]; then
         alias sudo='\sudo '
         eval "sudo $@"
     else
@@ -36,7 +36,7 @@ _sshd_pswd() {
         echo "Usage: $0 yes|no"
         return 1
     fi
-    (  # scope of prompt_sudo
+    ( # scope of prompt_sudo
         _prompt_sudo
         lsgpu -c " \
             $sudo_pswd sed -i 's/^PasswordAuthentication.*/PasswordAuthentication $1/' /etc/ssh/sshd_config && \
@@ -65,7 +65,7 @@ lsshd() {
 
 # rely on lsgpu
 create_users_all_nodes() {
-    (  # scope of prompt_sudo
+    ( # scope of prompt_sudo
         _prompt_sudo
         # run users.sh on all nodes
         lsgpu -c "$sudo_pswd /mnt/public/app/users/users.sh"
@@ -80,18 +80,27 @@ lsport() {
     # -u ... : specify all user (exclude root and other irrelevant UIDs)
     # -i $@ : allow filtering ports (eg. `lsport :9090`)
     # sed; sort : sort by column 3 first (USER), and then by col 9 (port)
-    sudo lsof -wa +c0 -c ^ssh -u "$(ls /home | tr '\n' ',')" -i "$@" |& (sed -u 1q; sort -k 3,3 -k 9)
+    sudo lsof -wa +c0 -c ^ssh -u "$(ls /home | tr '\n' ',')" -i "$@" |& (
+        sed -u 1q
+        sort -k 3,3 -k 9
+    )
 }
 
 # df all file systems except loop and tmpfs, sort by mounted path
 dfa() {
-    df -h | grep -Ev "loop|tmpfs" | (sed -u 1q; sort -k 6)
+    df -h | grep -Ev "loop|tmpfs" | (
+        sed -u 1q
+        sort -k 6
+    )
 }
 
 # du sort by size, with intermediate results
 # https://stackoverflow.com/a/6075520
 dus() {
-    (echo '==========='; du -hd1 "$@") | tee /dev/tty | sort -h
+    (
+        echo '==========='
+        du -hd1 "$@"
+    ) | tee /dev/tty | sort -h
 }
 
 # https://superuser.com/a/1486196
