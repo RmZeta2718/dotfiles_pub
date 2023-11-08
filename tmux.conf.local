@@ -467,3 +467,9 @@ unbind -n MouseDown3Status
 
 # https://dandavison.github.io/delta/tips-and-tricks/using-delta-with-tmux.html
 set -ga terminal-overrides ",xterm-256color:Tc"
+
+# make repeat time long enough to stay in repeat mode infinitely
+# To end escape mode, simply press any key not bounded as repeat mode (like ESC below).
+# 32767 is the tested max value in 3.2a, and `#!important` to override oh-my-tmux default
+set -sg repeat-time 32767  #!important
+unbind Escape  # swap window by default? Too crazy. Remove for exit repeat mode
