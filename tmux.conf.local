@@ -446,8 +446,8 @@ set -g allow-rename on
 # not work, from https://stackoverflow.com/a/68043814 
 # set -g automatic-rename-format "#{?#{==:#{pane_current_command},bash},#{b:pane_current_path},#{pane_current_command}}"
 
-bind -r C-[ swap-window -dt -1
-bind -r C-] swap-window -dt +1
+bind -r \{ swap-window -dt -1
+bind -r \} swap-window -dt +1
 
 # https://www.reddit.com/r/tmux/comments/e9yve1/how_to_disable_the_rightclick_menu_in_tmux_30/
 unbind -n MouseDown3Pane
@@ -469,7 +469,6 @@ unbind -n MouseDown3Status
 set -ga terminal-overrides ",xterm-256color:Tc"
 
 # make repeat time long enough to stay in repeat mode infinitely
-# To end escape mode, simply press any key not bounded as repeat mode (like ESC below).
+# To end escape mode, simply press any key not bounded as repeat mode (ESC, for example).
 # 32767 is the tested max value in 3.2a, and `#!important` to override oh-my-tmux default
 set -sg repeat-time 32767  #!important
-unbind Escape  # swap window by default? Too crazy. Remove for exit repeat mode
