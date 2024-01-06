@@ -138,3 +138,8 @@ _clean_ckpt() {
 inotify-info() {
     _inotify-info "$@" | less -S
 }
+
+# https://www.svlik.com/t/ipapi/
+qip() {
+    curl -s "https://www.svlik.com/t/ipapi/ip.php?ip=$1" | jq
+}
