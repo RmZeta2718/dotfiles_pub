@@ -11,7 +11,7 @@ parser: argparse.ArgumentParser = None  # type: ignore
 def main():
     args = parse_args()
     confirm(args)
-    rsync(args.src, args.dst)
+    rsync(args.src, args.dst, args.args)
 
 
 def run_cmd(cmd: str):
@@ -75,6 +75,7 @@ class Path:
 class Args:
     src: Path
     dst: Path
+    args: str
 
     def __post_init__(self):
         # convert str to Path on init
@@ -145,8 +146,9 @@ Use cases:
     # use positional arguments to avoid specifying -s -d
     parser.add_argument("src", type=str, help="source")
     parser.add_argument("dst", type=str, help="destination")
+    parser.add_argument("args", nargs=argparse.REMAINDER, help="rsync args")
     cmd_args = parser.parse_args()
-    args = Args(cmd_args.src, cmd_args.dst)
+    args = Args(cmd_args.src, cmd_args.dst, " ".join(cmd_args.args))
 
     return args
 
@@ -178,9 +180,11 @@ def confirm(args: Args):
 
 
 # src or dst should contain host
-def rsync(src: Path, dst: Path):
+def rsync(src: Path, dst: Path, args: str):
     # --delete-excluded: https://serverfault.com/a/582858
-    cmd = f"rsync -avhH --partial-dir=.rsync-partial --exclude __pycache__/ --delete --delete-excluded {src} {dst}"
+    cmd = (
+        f"rsync -avhH --partial-dir=.rsync-partial --exclude __pycache__/ --delete --delete-excluded {args} {src} {dst}"
+    )
     print(cmd)
     run_cmd(cmd)
     print("Finished command:")
