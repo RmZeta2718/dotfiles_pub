@@ -15,3 +15,6 @@ alias rs="rsync_script"
 alias LL="ll -L"
 
 alias ca="conda activate"
+
+# WSL
+alias pb="clip.exe"
