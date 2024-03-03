@@ -60,6 +60,8 @@
     - [(cd autojump && ./install.py > /dev/null), "Install autojump"] # need python3 available https://github.com/wting/autojump#manual
     - command: |
         if ! grep -Fq "# <<< conda initialize <<<" ~/.shell_local_after; then
-          conda init zsh > /dev/null && tail -n 15 ~/.zshrc >> ~/.shell_local_after && git checkout -- zsh/zshrc
+          if command -v conda > /dev/null; then
+            conda init zsh > /dev/null && tail -n 15 ~/.zshrc >> ~/.shell_local_after && git checkout -- zsh/zshrc
+          fi
         fi
       description: Init conda and move changes to shell_local_after. Assuming conda init is last 15 lines.
