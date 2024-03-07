@@ -1,0 +1,8 @@
+#!/bin/bash
+
+folder="$HOME/.vscode-server/extensions/foxundermoon.shell-format-7.2.5/bin"
+
+mkdir -p "$folder" &&
+    wget https://github.com/mvdan/sh/releases/download/v3.6.0/shfmt_v3.6.0_linux_amd64 \
+        -O "$folder/shfmt_v3.6.0_linux_amd64" &&
+    chmod +x "$folder/shfmt_v3.6.0_linux_amd64"
