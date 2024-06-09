@@ -26,6 +26,7 @@
 [diff]
     colorMoved = default
 
+# ssh signing
 [gpg]
 	format = ssh
 [user]
@@ -34,3 +35,9 @@
 	gpgsign = true
 [tag]
 	gpgsign = true
+
+# git maintenance
+[include]
+	path = ~/.gitmaintenance
+[init]
+	templateDir = ~/.git-templates

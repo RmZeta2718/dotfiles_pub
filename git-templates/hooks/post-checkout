@@ -1,0 +1,14 @@
+#!/bin/sh
+# This hook is run after git checkout or git clone
+
+# Check if this is the first checkout after clone
+if [ ! -f .git/first_clone_done ]; then
+    # Perform maintenance tasks
+    git maintenance start # start background maintenance processes
+    # it also writes into ~/.gitconfig, which is removed next
+    git maintenance unregister                               # remove the config in ~/.gitconfig
+    git maintenance register --config-file ~/.gitmaintenance # write into the local config
+
+    # Create a flag file to indicate that the first clone tasks have been done
+    touch .git/first_clone_done
+fi
