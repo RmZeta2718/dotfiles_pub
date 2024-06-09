@@ -2,29 +2,37 @@
 	path = dotbot
 	url = https://github.com/anishathalye/dotbot
 	ignore = dirty
+	shallow = true
 
 # zsh
 [submodule "zsh/oh-my-zsh"]
 	path = zsh/oh-my-zsh
 	url = https://github.com/ohmyzsh/ohmyzsh.git
+	shallow = true
 [submodule "zsh/custom/plugins/zsh-autosuggestions"]
 	path = zsh/custom/plugins/zsh-autosuggestions
 	url = https://github.com/zsh-users/zsh-autosuggestions.git
+	shallow = true
 [submodule "zsh/custom/plugins/zsh-syntax-highlighting"]
 	path = zsh/custom/plugins/zsh-syntax-highlighting
 	url = https://github.com/zsh-users/zsh-syntax-highlighting.git
+	shallow = true
 [submodule "zsh/custom/plugins/zsh-completions"]
 	path = zsh/custom/plugins/zsh-completions
 	url = https://github.com/zsh-users/zsh-completions.git
+	shallow = true
 [submodule "zsh/custom/plugins/zsh-vi-mode"]
 	path = zsh/custom/plugins/zsh-vi-mode
 	url = https://github.com/jeffreytse/zsh-vi-mode
+	shallow = true
 [submodule "autojump"]
 	path = autojump
 	url = https://github.com/wting/autojump.git
+	shallow = true
 [submodule "tmux"]
 	path = tmux
 	url = git@github.com:gpakosz/.tmux.git
+	shallow = true
 [submodule "zsh/custom/themes/powerlevel10k"]
 	path = zsh/custom/themes/powerlevel10k
 	url = https://github.com/romkatv/powerlevel10k.git
