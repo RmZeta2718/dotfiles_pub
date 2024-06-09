@@ -15,27 +15,26 @@ path_prepend() {
     PATH="$1${PATH:+":$PATH"}"
 }
 
-# Update dotfiles
+# for local dotfiles: force update dotfiles to remote (use with caution)
 dfu() {
     (
-        cd ~/.dotfiles && git pull --ff-only && ./install -q
+        cd ~/.dotfiles && git fetch && git reset --hard origin/master && ./install -q
     )
 }
 
-# pull dotfiles, but skip install (useful with only small changes)
-# always color for dfp: https://unix.stackexchange.com/a/304025
+# for local dotfiles: pull but skip install (useful with only small changes)
 dfl() {
-    (cd ~/dotfiles/dotfiles_pub && git -c color.ui=always pull --ff-only)
-    (cd ~/dotfiles/dotfiles_private && git -c color.ui=always pull --ff-only)
+    (cd ~/dotfiles/dotfiles_pub && git pull --ff-only)
+    (cd ~/dotfiles/dotfiles_private && git pull --ff-only)
 }
 
-# push dotfiles to all known gpu hosts (or actually pull on all)
-# depend on bin/lsgpu and shell/functions.sh:dfl (this file) on hosts
+# for all hosts: force push dotfiles
+# depend on bin/lsgpu and shell/functions.sh:dfu (this file) on hosts
 dfp() {
-    gp && lsgpu -t 30 -c 'source ~/.shell/functions.sh; dfl'
+    gp && lsgpu -t 30 -c 'source ~/.shell/functions.sh; dfu'
 }
 
-# rs dotfiles from local machine to all hosts
+# for all hosts: rs dotfiles from local machine without install (useful with only small changes)
 dfs() {
     lsgpu -t 5 -Tc 'yes | rsync_script ~/dotfiles/ {host}:'
 }
