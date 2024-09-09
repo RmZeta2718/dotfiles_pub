@@ -142,3 +142,25 @@ inotify-info() {
 qip() {
     curl -s "https://www.svlik.com/t/ipapi/ip.php?ip=$1" | jq
 }
+
+# export cuda environ
+ce() {
+    # check first arg 11.8
+    if [ "$#" -ne 1 ]; then
+        echo "ce: export cuda environ"
+        echo "Usage: $0 11.8"
+        return 1
+
+    fi
+    if [ ! -d "/usr/local/cuda-$1" ]; then
+        echo "ce: /usr/local/cuda-$1 not found"
+        return 1
+    fi
+    echo "export CUDA_HOME=/usr/local/cuda-$1 && export PATH=\$CUDA_HOME/bin:\$PATH && export LD_LIBRARY_PATH=\$CUDA_HOME/lib64:\$LD_LIBRARY_PATH"
+    export CUDA_HOME=/usr/local/cuda-$1 && export PATH=$CUDA_HOME/bin:$PATH && export LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
+}
+
+# grep cuda environ
+cg() {
+    export | grep -i cuda
+}
