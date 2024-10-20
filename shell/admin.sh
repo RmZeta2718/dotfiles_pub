@@ -19,7 +19,7 @@ Sudo() {
 
 # prompt for sudo password and save to variable $password
 # scope of prompt_sudo should be limited by () to prevent leaking $password
-_prompt_sudo() {
+_sudo_get() {
     # mimic sudo prompt
     echo -n "[sudo] password for $USER: "
     read -s password
@@ -37,7 +37,7 @@ _sshd_pswd() {
         return 1
     fi
     ( # scope of prompt_sudo
-        _prompt_sudo
+        _sudo_get
         lsgpu -c " \
             $sudo_pswd sed -i 's/^PasswordAuthentication.*/PasswordAuthentication $1/' /etc/ssh/sshd_config && \
             $sudo_pswd systemctl restart sshd.service && \
