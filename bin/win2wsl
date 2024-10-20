@@ -1,0 +1,20 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "Usage: $0 <Windows path>"
+    exit 1
+fi
+
+# Get the input Windows path
+windows_path=$1
+
+# Convert backslashes to forward slashes
+wsl_path=$(echo "$windows_path" | sed 's/\\/\//g')
+
+# Extract the drive letter and convert it to lowercase
+drive_letter=$(echo "$wsl_path" | cut -d':' -f1 | tr '[:upper:]' '[:lower:]')
+
+# Remove the drive letter and colon, then prepend /mnt/
+wsl_path="/mnt/$drive_letter${wsl_path:2}"
+
+echo "$wsl_path"
