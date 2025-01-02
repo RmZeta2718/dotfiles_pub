@@ -33,6 +33,7 @@
     ~/.shell:
     ~/.zsh:
     ~/.zshrc: zsh/zshrc
+    ~/.inputrc:
     ~/.tmux.conf: tmux/.tmux.conf
     ~/.tmux.conf.local:
 
