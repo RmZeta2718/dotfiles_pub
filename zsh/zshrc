@@ -39,8 +39,9 @@ DISABLE_AUTO_UPDATE="true"
 # Uncomment the following line to change how often to auto-update (in days).
 # export UPDATE_ZSH_DAYS=13
 
+# https://github.com/romkatv/powerlevel10k/issues/568#issuecomment-600464952
 # Uncomment the following line if pasting URLs and other text is messed up.
-# DISABLE_MAGIC_FUNCTIONS="true"
+DISABLE_MAGIC_FUNCTIONS="true"
 
 # Uncomment the following line to disable colors in ls.
 # DISABLE_LS_COLORS="true"
@@ -52,7 +53,7 @@ DISABLE_AUTO_UPDATE="true"
 # ENABLE_CORRECTION="true"
 
 # Uncomment the following line to display red dots whilst waiting for completion.
-# COMPLETION_WAITING_DOTS="true"
+COMPLETION_WAITING_DOTS="true"
 
 # Uncomment the following line if you want to disable marking untracked files
 # under VCS as dirty. This makes repository status check for large repositories
@@ -112,7 +113,10 @@ fpath=(~/.zsh/completion $fpath)
 source "$ZSH/oh-my-zsh.sh"
 
 # https://github.com/zsh-users/zsh-autosuggestions/issues/511
-zle_bracketed_paste=()
+# this also turn off bracketed paste, which cause some problems when pasting
+# zle_bracketed_paste=()
+# https://github.com/ohmyzsh/ohmyzsh/issues/5459#issuecomment-2106102549
+zle_highlight=('paste:none')
 
 # Time to wait for additional characters in a sequence
 # https://www.johnhawthorn.com/2012/09/vi-escape-delays/
@@ -151,3 +155,4 @@ fi
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.zsh/p10k.zsh ]] || source ~/.zsh/p10k.zsh
+
