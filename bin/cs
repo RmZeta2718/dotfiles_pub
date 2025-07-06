@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+import os
+import sys
+import re
+from pathlib import Path
+
+
+def parse_ssh_config(config_path: Path):
+    """解析SSH配置文件，返回Host别名的映射字典"""
+    config = {}
+    current_hosts = []
+    try:
+        with open(config_path, "r") as f:
+            for line in f:
+                line = line.strip()
+                # 跳过空行和注释
+                if not line or line.startswith("#"):
+                    continue
+
+                # 处理Host行
+                if line.lower().startswith("host "):
+                    current_hosts = line.split()[1:]
+                    for host in current_hosts:
+                        config.setdefault(host, {})
+                # 处理配置项
+                elif current_hosts:
+                    parts = re.split(r"\s+", line, 1)
+                    if len(parts) < 2:
+                        continue
+                    key, value = parts[0].lower(), parts[1].strip()
+                    for host in current_hosts:
+                        config[host][key] = value
+    except FileNotFoundError:
+        pass
+    return config
+
+
+def get_current_connection_info():
+    """从环境变量获取当前SSH连接信息"""
+    ssh_conn = os.getenv("SSH_CONNECTION")
+    if not ssh_conn:
+        print("Error: Not in an SSH session", file=sys.stderr)
+        sys.exit(1)
+
+    parts = ssh_conn.split()
+    if len(parts) < 4:
+        print("Error: Invalid SSH_CONNECTION format", file=sys.stderr)
+        sys.exit(1)
+
+    return {"server_ip": parts[2], "server_port": parts[3], "user": os.getenv("USER", "")}
+
+
+def find_matching_host(ssh_config, conn_info):
+    """在SSH配置中查找匹配当前连接的Host别名"""
+    for host, config in ssh_config.items():
+        # 跳过通配符Host
+        if "*" in host or "?" in host:
+            continue
+
+        # 检查HostName是否匹配
+        host_ip = config.get("hostname", "")
+        if host_ip != conn_info["server_ip"]:
+            continue
+
+        # 检查端口是否匹配（默认22）
+        config_port = config.get("port", "22")
+        if config_port != conn_info["server_port"]:
+            continue
+
+        # 检查用户是否匹配（如果配置中存在）
+        if "user" in config and config["user"] != conn_info["user"]:
+            continue
+
+        return host
+    return None
+
+
+def main():
+    # 获取目标目录（默认为当前目录）
+    target_dir = sys.argv[1] if len(sys.argv) > 1 else os.getcwd()
+    abs_path = os.path.abspath(target_dir)
+
+    # 获取当前SSH连接信息
+    conn_info = get_current_connection_info()
+
+    # 解析SSH配置
+    ssh_config = {}
+    for config_file in ["config", "config_local"]:
+        config_path = Path.home() / ".ssh" / config_file
+        ssh_config.update(parse_ssh_config(config_path))
+
+    # 查找匹配的Host别名
+    host_alias = find_matching_host(ssh_config, conn_info)
+
+    if not host_alias:
+        # 如果没有匹配的别名，使用主机名作为后备
+        import socket
+
+        host_alias = socket.gethostname()
+
+    # 生成并输出Cursor/VSCode URI
+    uri = f"cursor://vscode-remote/ssh-remote+{host_alias}{abs_path}"
+
+    # 输出可点击链接（适用于支持OSC 8协议的终端）
+    print(f"\033]8;;{uri}\033\\{uri}\033]8;;\033\\")
+
+
+if __name__ == "__main__":
+    main()
