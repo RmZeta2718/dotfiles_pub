@@ -17,32 +17,17 @@ Sudo() {
     fi
 }
 
-# prompt for sudo password and save to variable $password
-# scope of prompt_sudo should be limited by () to prevent leaking $password
-_sudo_get() {
-    # mimic sudo prompt
-    echo -n "[sudo] password for $USER: "
-    read -s password
-    echo ""
-    # https://serverfault.com/q/967859
-    sudo_pswd="echo '$password' | sudo -Sp ''"
-}
-
 # change sshd PasswordAuthentication on all nodes
-# rely on lsgpu
+# rely on lsgpu with automatic sudo detection
 _sshd_pswd() {
     if [ "$#" -ne 1 ]; then
         echo "_sshd_pswd: change PasswordAuthentication in /etc/ssh/sshd_config"
         echo "Usage: $0 yes|no"
         return 1
     fi
-    ( # scope of prompt_sudo
-        _sudo_get
-        lsgpu -c " \
-            $sudo_pswd sed -i 's/^PasswordAuthentication.*/PasswordAuthentication $1/' /etc/ssh/sshd_config && \
-            $sudo_pswd systemctl restart sshd.service && \
-        echo 'PasswordAuthentication set to $1'"
-    )
+    lsgpu -c "sudo sed -i 's/^PasswordAuthentication.*/PasswordAuthentication $1/' /etc/ssh/sshd_config \
+    && sudo systemctl restart sshd.service \
+    && echo 'PasswordAuthentication set to $1'"
 }
 
 # change sshd PubkeyAuthentication to yes on all nodes
