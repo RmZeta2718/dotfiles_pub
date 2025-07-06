@@ -18,34 +18,34 @@ Sudo() {
 }
 
 # change sshd PasswordAuthentication on all nodes
-# rely on lsgpu with automatic sudo detection
+# rely on mc with automatic sudo detection
 _sshd_pswd() {
     if [ "$#" -ne 1 ]; then
         echo "_sshd_pswd: change PasswordAuthentication in /etc/ssh/sshd_config"
         echo "Usage: $0 yes|no"
         return 1
     fi
-    lsgpu -c "sudo sed -i 's/^PasswordAuthentication.*/PasswordAuthentication $1/' /etc/ssh/sshd_config \
+    mc -c "sudo sed -i 's/^PasswordAuthentication.*/PasswordAuthentication $1/' /etc/ssh/sshd_config \
     && sudo systemctl restart sshd.service \
     && echo 'PasswordAuthentication set to $1'"
 }
 
 # change sshd PubkeyAuthentication to yes on all nodes
-# rely on lsgpu
+# rely on mc
 sshd_pswd_on() {
     _sshd_pswd yes
 }
 
 # change sshd PubkeyAuthentication to no on all nodes
-# rely on lsgpu
+# rely on mc
 sshd_pswd_off() {
     _sshd_pswd no
 }
 
 # show sshd_config on all nodes
-# rely on lsgpu
+# rely on mc
 lsshd() {
-    lsgpu -c 'grep --color=always -E "^(PasswordAuthentication|PubkeyAuthentication|PermitRootLogin)" /etc/ssh/sshd_config'
+    mc -c 'grep --color=always -E "^(PasswordAuthentication|PubkeyAuthentication|PermitRootLogin)" /etc/ssh/sshd_config'
 }
 
 lsport() {

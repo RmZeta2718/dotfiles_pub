@@ -29,14 +29,14 @@ dfl() {
 }
 
 # for all hosts: force push dotfiles
-# depend on bin/lsgpu and shell/functions.sh:dfu (this file) on hosts
+# depend on bin/mc and shell/functions.sh:dfu (this file) on hosts
 dfp() {
-    gp && lsgpu -t 30 -c 'source ~/.shell/functions.sh; dfu'
+    gp && mc -t 30 -c 'source ~/.shell/functions.sh; dfu'
 }
 
 # for all hosts: rs dotfiles from local machine without install (useful with only small changes)
 dfs() {
-    lsgpu -t 5 -Tc 'yes | rsync_script ~/dotfiles/ {host}:'
+    mc -t 5 -Tc 'yes | rsync_script ~/dotfiles/ {host}:'
 }
 
 # Create a directory and cd into it
