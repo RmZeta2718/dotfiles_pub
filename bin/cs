@@ -1,18 +1,56 @@
 #!/usr/bin/env python3
+"""
+cs - Cursor/VSCode SSH Remote 链接生成工具
+
+此脚本用于在SSH会话中生成可点击的链接，打开Cursor或VSCode编辑器连接到远程服务器。
+也可以在本地环境中直接启动Cursor或VSCode。
+
+功能特点：
+1. 在SSH会话中生成远程连接URI
+2. 在本地环境中直接启动编辑器
+3. 支持Cursor和VSCode两种编辑器
+4. 支持调试模式
+5. 智能处理路径参数
+
+使用示例：
+  cs                       # 在当前目录打开Cursor
+  cs /path/to/dir          # 在指定目录打开Cursor
+  cs -- --vs               # 在当前目录打开VSCode
+  cs /path/to/dir -- --vs  # 在指定目录打开VSCode
+  cs -- --debug            # 启用调试输出
+"""
+
 import os
 import sys
 import re
+import subprocess
+import argparse
+import socket
 from pathlib import Path
 
 
 def parse_ssh_config(config_path: Path):
-    """解析SSH配置文件，返回Host别名的映射字典"""
+    """
+    解析SSH配置文件，返回Host别名的映射字典
+
+    Args:
+        config_path: SSH配置文件路径
+
+    Returns:
+        dict: 包含主机配置的字典
+    """
     config = {}
     current_hosts = []
+
+    # 如果配置文件不存在，返回空字典
+    if not config_path.exists():
+        return config
+
     try:
-        with open(config_path, "r") as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
+
                 # 跳过空行和注释
                 if not line or line.startswith("#"):
                     continue
@@ -30,79 +68,298 @@ def parse_ssh_config(config_path: Path):
                     key, value = parts[0].lower(), parts[1].strip()
                     for host in current_hosts:
                         config[host][key] = value
-    except FileNotFoundError:
-        pass
+    except Exception as e:
+        print(f"警告: 解析SSH配置时出错 ({config_path}): {e}", file=sys.stderr)
+
     return config
 
 
-def get_current_connection_info():
-    """从环境变量获取当前SSH连接信息"""
+def get_connection_info():
+    """
+    获取当前SSH连接信息
+
+    Returns:
+        dict: 包含连接信息的字典，如果不在SSH会话中则返回None
+    """
     ssh_conn = os.getenv("SSH_CONNECTION")
     if not ssh_conn:
-        print("Error: Not in an SSH session", file=sys.stderr)
-        sys.exit(1)
+        return None
 
     parts = ssh_conn.split()
     if len(parts) < 4:
-        print("Error: Invalid SSH_CONNECTION format", file=sys.stderr)
-        sys.exit(1)
+        print("错误: SSH_CONNECTION格式无效", file=sys.stderr)
+        return None
 
     return {"server_ip": parts[2], "server_port": parts[3], "user": os.getenv("USER", "")}
 
 
-def find_matching_host(ssh_config, conn_info):
-    """在SSH配置中查找匹配当前连接的Host别名"""
+def find_matching_host(ssh_config, conn_info, debug=False):
+    """
+    在SSH配置中查找匹配当前连接的Host别名
+
+    Args:
+        ssh_config: SSH配置字典
+        conn_info: 当前连接信息
+        debug: 是否启用调试输出
+
+    Returns:
+        str: 匹配的主机别名，如果没有匹配则返回None
+    """
+    if not conn_info:
+        return None
+
     for host, config in ssh_config.items():
         # 跳过通配符Host
         if "*" in host or "?" in host:
             continue
 
+        # 调试信息
+        if debug:
+            print(f"调试: 检查主机 '{host}': {config}", file=sys.stderr)
+
         # 检查HostName是否匹配
         host_ip = config.get("hostname", "")
         if host_ip != conn_info["server_ip"]:
-            continue
+            # 尝试解析主机名
+            try:
+                resolved_ip = socket.gethostbyname(host_ip)
+                if resolved_ip == conn_info["server_ip"]:
+                    if debug:
+                        print(f"调试: 主机名 '{host_ip}' 解析为匹配的IP '{resolved_ip}'", file=sys.stderr)
+                else:
+                    if debug:
+                        print(f"调试: IP不匹配 ({host_ip} != {conn_info['server_ip']})", file=sys.stderr)
+                    continue
+            except socket.gaierror:
+                if debug:
+                    print(f"调试: 无法解析主机名 '{host_ip}'", file=sys.stderr)
+                continue
 
         # 检查端口是否匹配（默认22）
         config_port = config.get("port", "22")
         if config_port != conn_info["server_port"]:
+            if debug:
+                print(f"调试: 端口不匹配 ({config_port} != {conn_info['server_port']})", file=sys.stderr)
             continue
 
         # 检查用户是否匹配（如果配置中存在）
         if "user" in config and config["user"] != conn_info["user"]:
+            if debug:
+                print(f"调试: 用户不匹配 ({config['user']} != {conn_info['user']})", file=sys.stderr)
             continue
 
+        if debug:
+            print(f"调试: 找到匹配的主机 '{host}'", file=sys.stderr)
         return host
+
     return None
 
 
-def main():
-    # 获取目标目录（默认为当前目录）
-    target_dir = sys.argv[1] if len(sys.argv) > 1 else os.getcwd()
-    abs_path = os.path.abspath(target_dir)
+def parse_args():
+    """
+    解析命令行参数
 
-    # 获取当前SSH连接信息
-    conn_info = get_current_connection_info()
+    Returns:
+        tuple: (cursor_args, args) 元组，包含传递给编辑器的参数和cs工具的参数
+    """
+    # 创建参数解析器
+    parser = argparse.ArgumentParser(
+        prog="cs",
+        description="打开Cursor或VSCode编辑器，支持SSH远程会话\n"
+        "在SSH会话中，需要 SSH_HOST_ALIAS 环境变量指定主机别名，或将本地的ssh config复制到远程",
+        epilog="示例：\n"
+        "  cs                       # 在当前目录打开Cursor\n"
+        "  cs /path/to/dir          # 在指定目录打开Cursor\n"
+        "  cs -- --vs               # 在当前目录打开VSCode\n"
+        "  cs /path/to/dir -- --vs  # 在指定目录打开VSCode\n"
+        "  cs -- --debug            # 启用调试输出",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
 
-    # 解析SSH配置
+    # 添加cs的参数
+    parser.add_argument("--vs", action="store_true", help="使用VSCode而不是Cursor")
+    parser.add_argument("--debug", action="store_true", help="启用调试输出")
+
+    # 查找 -- 分隔符的位置
+    try:
+        separator_index = sys.argv.index("--")
+        cs_args = sys.argv[separator_index + 1 :]
+        cursor_args = [arg for i, arg in enumerate(sys.argv[1:]) if i < separator_index - 1]
+    except ValueError:
+        # 如果没有 -- 分隔符，所有参数都是 cursor_args
+        cs_args = []
+        cursor_args = sys.argv[1:]
+
+    # 解析cs_args
+    args = parser.parse_args(cs_args)
+    return cursor_args, args
+
+
+def validate_path(path, debug=False):
+    """
+    验证并标准化路径
+
+    Args:
+        path: 输入的路径
+        debug: 是否启用调试输出
+
+    Returns:
+        str: 绝对路径
+    """
+    if not path:
+        path = os.getcwd()
+
+    try:
+        abs_path = os.path.abspath(path)
+        if not os.path.exists(abs_path):
+            print(f"错误: 路径不存在: {abs_path}", file=sys.stderr)
+            sys.exit(1)
+
+        return abs_path
+    except Exception as e:
+        print(f"错误: 处理路径时出错: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def get_host_alias(debug=False):
+    """
+    获取主机别名
+
+    按优先级：
+    1. SSH_HOST_ALIAS环境变量
+    2. SSH配置中的匹配项
+    3. 当前主机名
+
+    Args:
+        debug: 是否启用调试输出
+
+    Returns:
+        str: 主机别名
+    """
+    # 1. 检查环境变量
+    host_alias = os.getenv("SSH_HOST_ALIAS")
+    if host_alias:
+        if debug:
+            print(f"调试: 使用环境变量SSH_HOST_ALIAS: {host_alias}", file=sys.stderr)
+        return host_alias
+
+    # 2. 获取连接信息
+    conn_info = get_connection_info()
+
+    # 3. 解析SSH配置
     ssh_config = {}
     for config_file in ["config", "config_local"]:
         config_path = Path.home() / ".ssh" / config_file
-        ssh_config.update(parse_ssh_config(config_path))
+        config = parse_ssh_config(config_path)
+        ssh_config.update(config)
 
-    # 查找匹配的Host别名
-    host_alias = find_matching_host(ssh_config, conn_info)
+        if debug and config:
+            print(f"调试: 加载SSH配置 ({config_path}): {len(config)} 个主机", file=sys.stderr)
 
-    if not host_alias:
-        # 如果没有匹配的别名，使用主机名作为后备
-        import socket
+    # 4. 查找匹配的主机
+    host_alias = find_matching_host(ssh_config, conn_info, debug)
 
-        host_alias = socket.gethostname()
+    if host_alias:
+        if debug:
+            print(f"调试: 使用SSH配置中的主机别名: {host_alias}", file=sys.stderr)
+        return host_alias
 
-    # 生成并输出Cursor/VSCode URI
-    uri = f"cursor://vscode-remote/ssh-remote+{host_alias}{abs_path}"
+    # 5. 使用主机名作为后备
+    host_alias = socket.gethostname()
+    if "." in host_alias:
+        host_alias = host_alias.split(".")[0]
 
-    # 输出可点击链接（适用于支持OSC 8协议的终端）
-    print(f"\033]8;;{uri}\033\\{uri}\033]8;;\033\\")
+    if debug:
+        print(f"调试: 使用主机名作为别名: {host_alias}", file=sys.stderr)
+
+    return host_alias
+
+
+def launch_local_editor(editor, path, debug=False):
+    """
+    在本地启动编辑器
+
+    Args:
+        editor: 编辑器名称 ('cursor' 或 'code')
+        path: 要打开的路径
+        debug: 是否启用调试输出
+    """
+    if debug:
+        print(f"调试: 在本地启动 {editor}: {path}", file=sys.stderr)
+
+    try:
+        # 检查编辑器是否可用
+        subprocess.run([editor, "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except FileNotFoundError:
+        print(f"错误: 找不到 {editor} 命令", file=sys.stderr)
+        print("请确保编辑器已安装并在PATH中", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        subprocess.run([editor, path])
+    except Exception as e:
+        print(f"错误: 启动编辑器失败: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def generate_remote_uri(host_alias, path, use_vscode=False, debug=False):
+    """
+    生成远程编辑器URI
+
+    Args:
+        editor: 编辑器类型 ('cursor' 或 'vscode')
+        host_alias: 主机别名
+        path: 路径
+        debug: 是否启用调试输出
+
+    Returns:
+        str: 编辑器URI
+    """
+    editor_prefix = "vscode" if use_vscode else "cursor"
+    uri = f"{editor_prefix}://vscode-remote/ssh-remote+{host_alias}{path}"
+
+    if debug:
+        print(f"调试: 生成URI: {uri}", file=sys.stderr)
+
+    return uri
+
+
+def main():
+    """主函数"""
+    try:
+        # 解析参数
+        cursor_args, args = parse_args()
+        debug = args.debug
+
+        # 获取目标路径
+        path = cursor_args[0] if cursor_args else ""
+        abs_path = validate_path(path, debug)
+
+        # 检查是否在本地环境
+        if os.getenv("VSCODE_IPC_HOOK_CLI") or not os.getenv("SSH_CONNECTION"):
+            # 本地启动编辑器
+            editor = "code" if args.vs else "cursor"
+            launch_local_editor(editor, abs_path, debug)
+            return
+
+        # 在SSH会话中，获取主机别名
+        host_alias = get_host_alias(debug)
+        if not host_alias:
+            print("错误: 无法确定主机别名", file=sys.stderr)
+            sys.exit(1)
+
+        # 生成并输出编辑器URI
+        uri = generate_remote_uri(host_alias, abs_path, args.vs, debug)
+
+        # 输出可点击链接
+        print("\n请点击以下链接打开编辑器（或手动复制链接，在浏览器中打开）：\n")
+        print(f"\033]8;;{uri}\033\\{uri}\033]8;;\033\\")
+
+    except SystemExit:
+        raise
+    except Exception as e:
+        print(f"错误: 发生意外错误: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
