@@ -1,6 +1,5 @@
 #!/bin/bash
 
-alias vs="code ."
 alias x="xdg-open ."
 
 alias m="make"

@@ -164,3 +164,7 @@ ce() {
 cg() {
     export | grep -i cuda
 }
+
+vs() {
+    cs "$@" -- --vs
+}
