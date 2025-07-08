@@ -16,3 +16,7 @@ alias ca="conda activate"
 
 # WSL
 alias pb="clip.exe"
+
+vs() {
+    cs "$@" -- --vs
+}

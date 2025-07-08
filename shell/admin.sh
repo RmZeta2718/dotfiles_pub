@@ -62,6 +62,13 @@ lsport() {
     )
 }
 
+lspa() {
+    sudo lsof -wa +c0 -i "$@" |& (
+        sed -u 1q
+        sort -k 3,3 -k 9
+    )
+}
+
 # df all file systems except loop and tmpfs, sort by mounted path
 dfa() {
     df -h | grep -Ev "loop|tmpfs" | (
