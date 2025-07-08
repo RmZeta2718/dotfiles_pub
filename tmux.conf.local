@@ -475,3 +475,7 @@ set -ga terminal-overrides ",xterm-256color:Tc"
 # To end escape mode, simply press any key not bounded as repeat mode (ESC, for example).
 # 32767 is the tested max value in 3.2a, and `#!important` to override oh-my-tmux default
 set -sg repeat-time 32767  #!important
+
+# https://stackoverflow.com/a/79306046
+# allow OSC 8 (https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda) in tmux
+set -as terminal-features ",*:hyperlinks"
