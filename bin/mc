@@ -6,6 +6,7 @@
 import argparse
 import getpass
 import subprocess
+from typing import Optional
 from concurrent.futures import ProcessPoolExecutor
 from itertools import repeat
 
@@ -49,7 +50,7 @@ def replace_sudo_with_password(cmd: str, password: str):
     return cmd.replace("sudo ", f"echo '{escaped_password}' | sudo -Sp '' ")
 
 
-def parse_cmd(host: str, cmd: str, template: bool, verbose: bool, sudo_password: str | None = None):
+def parse_cmd(host: str, cmd: str, template: bool, verbose: bool, sudo_password: Optional[str] = None):
     # Check if command contains sudo
     if "sudo " in cmd and sudo_password:
         cmd = replace_sudo_with_password(cmd, sudo_password)
@@ -91,7 +92,7 @@ def format_output(output: str, host: str):
 
 
 # run command on one machine using ssh or on local, return command output
-def run_one(host: str, cmd: str, timeout: float, template: bool, verbose: bool, sudo_password: str | None = None):
+def run_one(host: str, cmd: str, timeout: float, template: bool, verbose: bool, sudo_password: Optional[str] = None):
     parsed_cmd = parse_cmd(host, cmd, template, verbose, sudo_password)
     output, rc = run_cmd(parsed_cmd, timeout)
     output = format_output(output, host)
