@@ -62,7 +62,7 @@ class Path:
             # cache result to prevent redundant tests on remote
             # 0 is dir, 1 is not dir, 255 is ssh error (already dealt with)
             self.is_dir_cache = run_cmd(cmd) == 0
-            print(f'Done! {self.path} is {"" if self.is_dir_cache else "NOT "}dir')
+            print(f"Done! {self.path} is {'' if self.is_dir_cache else 'NOT '}dir")
             return self.is_dir_cache
         else:  # src is local path
             return os.path.isdir(self.path)
@@ -128,18 +128,18 @@ At most one of src and dst can be remote
 
 Use cases:
 - push current folder to host in the same path:
-    rsync_script ./ host:
+    rs ./ host:
 - pull folder from host in the same path:
-    rsync_script host: folder
+    rs host: folder
 - push current folder to host with different username or different folder name:
-    rsync_script folder/ host:~/new_name
+    rs folder/ host:~/new_name
 - rsync local path:
-    rsync_script folder/ /path/to/new/location
+    rs folder/ /path/to/new/location
 """
 
     global parser  # so parser.error is available anywhere
     parser = argparse.ArgumentParser(
-        "rsync_script",
+        "rs",
         description=parser_description,
         formatter_class=argparse.RawDescriptionHelpFormatter,  # preserve \n in description
     )
@@ -182,9 +182,7 @@ def confirm(args: Args):
 # src or dst should contain host
 def rsync(src: Path, dst: Path, args: str):
     # --delete-excluded: https://serverfault.com/a/582858
-    cmd = (
-        f"rsync -avhH --partial-dir=.rsync-partial --exclude __pycache__/ --delete --delete-excluded {args} {src} {dst}"
-    )
+    cmd = f"rsync -avhH --partial-dir=.rsync-partial --exclude __pycache__/ --delete --delete-excluded {args} {src} {dst}"
     print(cmd)
     run_cmd(cmd)
     print("Finished command:")

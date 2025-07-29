@@ -37,7 +37,7 @@ dfp() {
 
 # for all hosts: rs dotfiles from local machine without install (useful with only small changes)
 dfs() {
-    mc -t 5 -Tc 'yes | rsync_script ~/dotfiles/ {host}:'
+    mc -t 5 -Tc 'yes | rs ~/dotfiles/ {host}:'
 }
 
 ######## python ########
@@ -48,7 +48,7 @@ conda_pull() {
         return 1
     fi
     local host=$1
-    yes | rsync_script "$host": ~/.conda # rely on ~/.dotfiles/bin
+    yes | rs "$host": ~/.conda # rely on ~/.dotfiles/bin
 }
 
 # https://stackoverflow.com/a/46071447/17347885
