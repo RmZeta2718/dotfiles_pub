@@ -6,9 +6,9 @@
 import argparse
 import getpass
 import subprocess
-from typing import Optional
 from concurrent.futures import ProcessPoolExecutor
 from itertools import repeat
+from typing import Optional
 
 
 class color:
@@ -68,7 +68,7 @@ def parse_cmd(host: str, cmd: str, template: bool, verbose: bool, sudo_password:
     return parsed_cmd
 
 
-def run_cmd(cmd: str, timeout: float):
+def run_cmd(cmd: str, timeout: Optional[float]):
     try:
         rst = subprocess.run(
             cmd,
@@ -92,7 +92,9 @@ def format_output(output: str, host: str):
 
 
 # run command on one machine using ssh or on local, return command output
-def run_one(host: str, cmd: str, timeout: float, template: bool, verbose: bool, sudo_password: Optional[str] = None):
+def run_one(
+    host: str, cmd: str, timeout: Optional[float], template: bool, verbose: bool, sudo_password: Optional[str] = None
+):
     parsed_cmd = parse_cmd(host, cmd, template, verbose, sudo_password)
     output, rc = run_cmd(parsed_cmd, timeout)
     output = format_output(output, host)
@@ -106,6 +108,7 @@ if __name__ == "__main__":
     sudo_password = None
     if "sudo " in args.cmd:
         sudo_password = get_sudo_password()
+        args.timeout = None  # no timeout for sudo
 
     with ProcessPoolExecutor(max_workers=len(args.hosts)) as executor:
         procs = executor.map(
