@@ -20,13 +20,16 @@ cs - Cursor/VSCode SSH Remote 链接生成工具
   cs -- --debug            # 启用调试输出
 """
 
-import os
-import sys
-import re
-import subprocess
 import argparse
+import os
+import re
 import socket
+import subprocess
+import sys
 from pathlib import Path
+from shutil import which
+
+from code_connect import ensure_socat_is_in_PATH, launch_code_over_ipc
 
 
 def parse_ssh_config(config_path: Path):
@@ -90,7 +93,11 @@ def get_connection_info():
         print("错误: SSH_CONNECTION格式无效", file=sys.stderr)
         return None
 
-    return {"server_ip": parts[2], "server_port": parts[3], "user": os.getenv("USER", "")}
+    return {
+        "server_ip": parts[2],
+        "server_port": parts[3],
+        "user": os.getenv("USER", ""),
+    }
 
 
 def find_matching_host(ssh_config, conn_info, debug=False):
@@ -125,10 +132,16 @@ def find_matching_host(ssh_config, conn_info, debug=False):
                 resolved_ip = socket.gethostbyname(host_ip)
                 if resolved_ip == conn_info["server_ip"]:
                     if debug:
-                        print(f"调试: 主机名 '{host_ip}' 解析为匹配的IP '{resolved_ip}'", file=sys.stderr)
+                        print(
+                            f"调试: 主机名 '{host_ip}' 解析为匹配的IP '{resolved_ip}'",
+                            file=sys.stderr,
+                        )
                 else:
                     if debug:
-                        print(f"调试: IP不匹配 ({host_ip} != {conn_info['server_ip']})", file=sys.stderr)
+                        print(
+                            f"调试: IP不匹配 ({host_ip} != {conn_info['server_ip']})",
+                            file=sys.stderr,
+                        )
                     continue
             except socket.gaierror:
                 if debug:
@@ -139,13 +152,19 @@ def find_matching_host(ssh_config, conn_info, debug=False):
         config_port = config.get("port", "22")
         if config_port != conn_info["server_port"]:
             if debug:
-                print(f"调试: 端口不匹配 ({config_port} != {conn_info['server_port']})", file=sys.stderr)
+                print(
+                    f"调试: 端口不匹配 ({config_port} != {conn_info['server_port']})",
+                    file=sys.stderr,
+                )
             continue
 
         # 检查用户是否匹配（如果配置中存在）
         if "user" in config and config["user"] != conn_info["user"]:
             if debug:
-                print(f"调试: 用户不匹配 ({config['user']} != {conn_info['user']})", file=sys.stderr)
+                print(
+                    f"调试: 用户不匹配 ({config['user']} != {conn_info['user']})",
+                    file=sys.stderr,
+                )
             continue
 
         if debug:
@@ -184,7 +203,9 @@ def parse_args():
     try:
         separator_index = sys.argv.index("--")
         cs_args = sys.argv[separator_index + 1 :]
-        cursor_args = [arg for i, arg in enumerate(sys.argv[1:]) if i < separator_index - 1]
+        cursor_args = [
+            arg for i, arg in enumerate(sys.argv[1:]) if i < separator_index - 1
+        ]
     except ValueError:
         # 如果没有 -- 分隔符，所有参数都是 cursor_args
         cs_args = []
@@ -209,16 +230,12 @@ def validate_path(path, debug=False):
     if not path:
         path = os.getcwd()
 
-    try:
-        abs_path = os.path.abspath(path)
-        if not os.path.exists(abs_path):
-            print(f"错误: 路径不存在: {abs_path}", file=sys.stderr)
-            sys.exit(1)
-
-        return abs_path
-    except Exception as e:
-        print(f"错误: 处理路径时出错: {e}", file=sys.stderr)
+    abs_path = Path(path).resolve()
+    if not abs_path.exists():
+        print(f"错误: 路径不存在: {abs_path}", file=sys.stderr)
         sys.exit(1)
+
+    return abs_path
 
 
 def get_host_alias(debug=False):
@@ -254,7 +271,10 @@ def get_host_alias(debug=False):
         ssh_config.update(config)
 
         if debug and config:
-            print(f"调试: 加载SSH配置 ({config_path}): {len(config)} 个主机", file=sys.stderr)
+            print(
+                f"调试: 加载SSH配置 ({config_path}): {len(config)} 个主机",
+                file=sys.stderr,
+            )
 
     # 4. 查找匹配的主机
     host_alias = find_matching_host(ssh_config, conn_info, debug)
@@ -275,7 +295,7 @@ def get_host_alias(debug=False):
     return host_alias
 
 
-def launch_local_editor(editor, path, debug=False):
+def launch_local_editor(cursor_args, args):
     """
     在本地启动编辑器
 
@@ -284,22 +304,21 @@ def launch_local_editor(editor, path, debug=False):
         path: 要打开的路径
         debug: 是否启用调试输出
     """
-    if debug:
-        print(f"调试: 在本地启动 {editor}: {path}", file=sys.stderr)
+    editor = "code" if args.vs else "cursor"
+    if not which(editor):
+        return -1
+    if args.debug:
+        print(f"调试: 在本地启动 {editor}: {cursor_args}", file=sys.stderr)
+    return subprocess.run([editor, *cursor_args]).returncode
 
-    try:
-        # 检查编辑器是否可用
-        subprocess.run([editor, "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    except FileNotFoundError:
-        print(f"错误: 找不到 {editor} 命令", file=sys.stderr)
-        print("请确保编辑器已安装并在PATH中", file=sys.stderr)
-        sys.exit(1)
 
+def launch_editor_over_ipc(cursor_args):
+    ensure_socat_is_in_PATH()
     try:
-        subprocess.run([editor, path])
-    except Exception as e:
-        print(f"错误: 启动编辑器失败: {e}", file=sys.stderr)
-        sys.exit(1)
+        # run the code binary with the args of the current script and exit with the same return code
+        return launch_code_over_ipc(sys.argv[1:])
+    except SystemExit as e:  # catch python exit
+        return e.code
 
 
 def generate_remote_uri(host_alias, path, use_vscode=False, debug=False):
@@ -324,42 +343,43 @@ def generate_remote_uri(host_alias, path, use_vscode=False, debug=False):
     return uri
 
 
+def print_remote_uri(cursor_args, args):
+    # 在SSH会话中，获取主机别名
+    host_alias = get_host_alias(args.debug)
+    if not host_alias:
+        print("错误: 无法确定主机别名", file=sys.stderr)
+        return -1
+
+    # 获取目标路径
+    path = cursor_args[0] if cursor_args else ""
+    abs_path = validate_path(path, args.debug)
+
+    # 生成并输出编辑器URI
+    uri = generate_remote_uri(host_alias, abs_path, args.vs, args.debug)
+
+    # 输出可点击链接
+    print("\n请点击以下链接打开编辑器（或手动复制链接，在浏览器中打开）：\n")
+    print(f"\033]8;;{uri}\033\\{uri}\033]8;;\033\\")
+    return 0
+
+
 def main():
     """主函数"""
-    try:
-        # 解析参数
-        cursor_args, args = parse_args()
-        debug = args.debug
+    # 解析参数
+    cursor_args, args = parse_args()
 
-        # 获取目标路径
-        path = cursor_args[0] if cursor_args else ""
-        abs_path = validate_path(path, debug)
+    # 本地启动编辑器
+    if launch_local_editor(cursor_args, args) == 0:
+        return
 
-        # 检查是否在本地环境
-        if os.getenv("VSCODE_IPC_HOOK_CLI") or not os.getenv("SSH_CONNECTION"):
-            # 本地启动编辑器
-            editor = "code" if args.vs else "cursor"
-            launch_local_editor(editor, abs_path, debug)
-            return
+    # 在远程启动编辑器
+    if launch_editor_over_ipc(cursor_args) == 0:
+        return
 
-        # 在SSH会话中，获取主机别名
-        host_alias = get_host_alias(debug)
-        if not host_alias:
-            print("错误: 无法确定主机别名", file=sys.stderr)
-            sys.exit(1)
+    if print_remote_uri(cursor_args, args) == 0:
+        return
 
-        # 生成并输出编辑器URI
-        uri = generate_remote_uri(host_alias, abs_path, args.vs, debug)
-
-        # 输出可点击链接
-        print("\n请点击以下链接打开编辑器（或手动复制链接，在浏览器中打开）：\n")
-        print(f"\033]8;;{uri}\033\\{uri}\033]8;;\033\\")
-
-    except SystemExit:
-        raise
-    except Exception as e:
-        print(f"错误: 发生意外错误: {e}", file=sys.stderr)
-        sys.exit(1)
+    print("错误: 无法启动编辑器", file=sys.stderr)
 
 
 if __name__ == "__main__":
