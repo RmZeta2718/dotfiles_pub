@@ -74,7 +74,7 @@ ZSH_CUSTOM="$HOME/.zsh/custom"
 
 # tmux plugin
 # ZSH_TMUX_AUTOSTART=true  # (do not do this, vscode don't need tmux)
-# ZSH_TMUX_AUTOQUIT=true
+ZSH_TMUX_AUTOQUIT=true
 
 # Which plugins would you like to load?
 # Standard plugins can be found in $ZSH/plugins/
