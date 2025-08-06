@@ -21,7 +21,7 @@ def parse_args():
     parser.add_argument("-c", "--cmd", type=str, required=True, help="command to execute on hosts")
     parser.add_argument("-o", "--hosts", nargs="+", type=str, help="list of hosts to query")
     parser.add_argument(
-        "-t", "--timeout", type=float, default=10, help="command timeout in seconds (float), default 10s"
+        "-t", "--timeout", type=float, default=-1, help="command timeout in seconds (float), default 10s"
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="print all executed commands")
     template_help = (
@@ -108,7 +108,11 @@ if __name__ == "__main__":
     sudo_password = None
     if "sudo " in args.cmd:
         sudo_password = get_sudo_password()
-        args.timeout = None  # no timeout for sudo
+        if args.timeout < 0:
+            args.timeout = None  # no timeout by default for sudo
+
+    if args.timeout is not None and args.timeout < 0:
+        args.timeout = 10  # 10s timeout by default
 
     with ProcessPoolExecutor(max_workers=len(args.hosts)) as executor:
         procs = executor.map(
