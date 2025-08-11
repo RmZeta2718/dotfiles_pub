@@ -37,7 +37,7 @@ dfp() {
 
 # for all hosts: rs dotfiles from local machine without install (useful with only small changes)
 dfs() {
-    mc -t 5 -Tc 'yes | rs ~/dotfiles/ {host}:'
+    mc -t 5 -Tc 'yes | rs ~/dotfiles {host}:'
 }
 
 ######## python ########
