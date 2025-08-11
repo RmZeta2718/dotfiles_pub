@@ -87,7 +87,6 @@ dus() {
 }
 
 # cat log files, in reversed order (recent logs first)
-# by Edge copilot
 # shellcheck disable=SC2012
 clog() {
     if [ "$#" -ne 1 ]; then
@@ -102,9 +101,9 @@ clog() {
                 if [[ $file == *.gz ]]; then
                     # in reversed order per file, so recent logs are shown first
                     # (files are named by recency, so ls is not reversed)
-                    zcat "$file" | tac
+                    sudo zcat "$file" | tac
                 else
-                    tac "$file"
+                    sudo tac "$file"
                 fi
             done
     )
