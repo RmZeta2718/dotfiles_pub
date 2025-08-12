@@ -36,11 +36,11 @@
 [tag]
 	gpgsign = true
 
-# git maintenance
-[include]
-	path = ~/.gitmaintenance
-[init]
-	templateDir = ~/.git-templates
+# git maintenance (disabled)
+# [include]
+# 	path = ~/.gitmaintenance
+# [init]
+# 	templateDir = ~/.git-templates
 
 [filter "lfs"]
         process = git-lfs filter-process

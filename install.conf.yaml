@@ -48,7 +48,7 @@
     ~/.pythonrc:
     ~/.condarc:
     ~/.gitconfig:
-    ~/.git-templates:
+    # ~/.git-templates:
 
 - shell:
     # - [bash bin/apt_install.sh, "Install apt packages."]
