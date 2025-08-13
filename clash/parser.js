@@ -10,25 +10,69 @@ parsers:
 
 
 module.exports.parse = async (raw, { axios, yaml, notify, console }, { name, url, interval, selected }) => {
-    const config = yaml.parse(raw)
-    // 遍历配置中的 proxy-groups
+    const config = yaml.parse(raw);
+    config["external-controller"] = "0.0.0.0:9099";
+    config["external-ui"] = "/nas/public/app/clash/clash-for-linux/dashboard/public";
+
+    // ======== 节点模板配置 ========
+    const nodeTemplates = {
+        ss: { // SSR节点模板
+            type: "ss",
+            port: 111,
+            password: "111",
+            cipher: "aes-256-gcm",
+            udp: false
+        },
+        vmess: { // V2Ray节点模板
+            type: "vmess",
+            port: 111,
+            uuid: "11111111-2222-3333-4444-555555555555",
+            alterId: 0,
+            cipher: "chacha20-poly1305",
+            udp: false
+        }
+    };
+    const customNodes = [
+        { name: "name", server: "server.com", type: "ss" },
+    ];
+    const newNodeConfigs = customNodes.map(node => ({
+        name: node.name,
+        server: node.server,
+        ...nodeTemplates[node.type]
+    }));
+    // 添加到配置最前面
+    config.proxies.unshift(...newNodeConfigs);
+
+    // ======== 修改代理组 ========
+
+    const newNodeNames = customNodes.map(node => node.name);
     config['proxy-groups'].forEach(group => {
-        if (group.name === "🔰Proxy") {
-            group.type = "url-test";
-            group.url = "http://www.gstatic.com/generate_204";
-            group.interval = 600;
-        }
-        if (group.name === "📲Telegram") {  // 复用一个已有的组作为ChatGPT代理
-            group.type = "url-test";
-            group.url = "http://www.gstatic.com/generate_204";
-            group.interval = 600;
-
-            const proxiesToDelete = ["🔰Proxy"];  // 删除无法访问ChatGPT的proxy
-            group.proxies = group.proxies.filter(proxy => !proxy.startsWith("HK") && !proxiesToDelete.includes(proxy));
-        }
+        group.proxies.push(...newNodeNames);
     });
+    // 查找并修改
+    let proxyGroup = config['proxy-groups'][0]
+    config['proxy-groups'].splice(1, 0, {  // 添加在第一个proxy-group后面
+        name: "🚀自动选择",
+        type: "url-test",
+        url: "http://www.gstatic.com/generate_204",
+        interval: 600,
+        proxies: proxyGroup.proxies
+    }, {
+        name: "🔰手动选择",
+        type: "select",
+        proxies: proxyGroup.proxies
+    });
+    proxyGroup.proxies = ["🚀自动选择", "🔰手动选择"];
 
-    // 你可以在这里添加你的自定义 rules
+    proxyGroup = config['proxy-groups'].find(group => group.name === "📲Telegram");
+    proxyGroup.type = "url-test";
+    proxyGroup.url = "http://www.gstatic.com/generate_204";
+    proxyGroup.interval = 600;
+    const proxiesToDelete = ["🔰Proxy"];  // 删除无法访问ChatGPT的proxy
+    proxyGroup.proxies = proxyGroup.proxies.filter(proxy => !proxy.startsWith("HK") && !proxiesToDelete.includes(proxy));
+
+
+    // ======== 添加自定义规则 ========
     const customRules = [
         'DOMAIN-SUFFIX,anthropic.com,📲Telegram',
         'DOMAIN-SUFFIX,claude.ai,📲Telegram',
