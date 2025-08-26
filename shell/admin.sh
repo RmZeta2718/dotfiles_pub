@@ -115,4 +115,4 @@ llog() {
 }
 
 # https://superuser.com/a/1486196
-alias iftop="TERM=xterm sudo iftop -Bm 100M"
+alias iftop="TERM=xterm-color sudo iftop -Bm 100M"
