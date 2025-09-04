@@ -1,23 +1,26 @@
 #!/usr/bin/env python3
 """
-cs - Cursor/VSCode SSH Remote 链接生成工具
+cs — 在本地、通过 VSCode IPC，或生成 SSH Remote 链接来打开 Cursor/VSCode。
 
-此脚本用于在SSH会话中生成可点击的链接，打开Cursor或VSCode编辑器连接到远程服务器。
-也可以在本地环境中直接启动Cursor或VSCode。
+工作流程优先级
+1) 本地启动：直接调用本机 `cursor`/`code` 打开给定路径。
+2) VSCode IPC：通过 IPC（依赖 `socat`）将请求转发到本机 VSCode。
+3) 远程链接：若以上均不可用，生成并打印可点击的 SSH Remote URI（OSC 8）。
 
-功能特点：
-1. 在SSH会话中生成远程连接URI
-2. 在本地环境中直接启动编辑器
-3. 支持Cursor和VSCode两种编辑器
-4. 支持调试模式
-5. 智能处理路径参数
+主机别名解析顺序
+- 读取环境变量 `SSH_HOST_ALIAS`
+- 解析 `~/.ssh/config` 与 `~/.ssh/config_local`，匹配当前 SSH 会话的 Host
+- 回退为当前主机名（去掉域名后缀）
 
-使用示例：
-  cs                       # 在当前目录打开Cursor
-  cs /path/to/dir          # 在指定目录打开Cursor
-  cs -- --vs               # 在当前目录打开VSCode
-  cs /path/to/dir -- --vs  # 在指定目录打开VSCode
-  cs -- --debug            # 启用调试输出
+依赖
+- 已安装 `cursor` 或 `code`（用于本地启动）
+- IPC 模式需要 `socat`（实现见 `code_connect.py`）
+
+示例
+  cs                    # 打开当前目录
+  cs /work              # 打开指定目录
+  cs --vs               # 使用 VSCode 打开
+  cs /work --debug      # 打印调试信息
 """
 
 import argparse
@@ -34,13 +37,13 @@ from code_connect import ensure_socat_is_in_PATH, launch_code_over_ipc
 
 def parse_ssh_config(config_path: Path):
     """
-    解析SSH配置文件，返回Host别名的映射字典
+    解析 SSH 配置文件，提取 Host 别名到配置项的映射。
 
     Args:
-        config_path: SSH配置文件路径
+        config_path: SSH 配置文件路径。
 
     Returns:
-        dict: 包含主机配置的字典
+        dict: Host 别名到配置项的字典。例如 `{ "prod": {"hostname": "1.2.3.4", ...} }`。
     """
     config = {}
     current_hosts = []
@@ -79,10 +82,13 @@ def parse_ssh_config(config_path: Path):
 
 def get_connection_info():
     """
-    获取当前SSH连接信息
+    从环境变量读取当前 SSH 连接信息。
 
     Returns:
-        dict: 包含连接信息的字典，如果不在SSH会话中则返回None
+        dict | None: 若在 SSH 会话中，返回 `{ "server_ip", "server_port", "user" }`；否则返回 None。
+
+    Notes:
+        依赖 `SSH_CONNECTION` 环境变量。
     """
     ssh_conn = os.getenv("SSH_CONNECTION")
     if not ssh_conn:
@@ -102,15 +108,15 @@ def get_connection_info():
 
 def find_matching_host(ssh_config, conn_info, debug=False):
     """
-    在SSH配置中查找匹配当前连接的Host别名
+    在 SSH 配置中查找与当前连接信息匹配的 Host 别名。
 
     Args:
-        ssh_config: SSH配置字典
-        conn_info: 当前连接信息
-        debug: 是否启用调试输出
+        ssh_config: 由 `parse_ssh_config` 返回的配置字典。
+        conn_info: 由 `get_connection_info` 返回的连接信息。
+        debug: 是否输出调试日志。
 
     Returns:
-        str: 匹配的主机别名，如果没有匹配则返回None
+        str | None: 匹配到的 Host 别名；未匹配到则返回 None。
     """
     if not conn_info:
         return None
@@ -132,16 +138,10 @@ def find_matching_host(ssh_config, conn_info, debug=False):
                 resolved_ip = socket.gethostbyname(host_ip)
                 if resolved_ip == conn_info["server_ip"]:
                     if debug:
-                        print(
-                            f"调试: 主机名 '{host_ip}' 解析为匹配的IP '{resolved_ip}'",
-                            file=sys.stderr,
-                        )
+                        print(f"调试: 主机名 '{host_ip}' 解析为匹配的IP '{resolved_ip}'", file=sys.stderr)
                 else:
                     if debug:
-                        print(
-                            f"调试: IP不匹配 ({host_ip} != {conn_info['server_ip']})",
-                            file=sys.stderr,
-                        )
+                        print(f"调试: IP不匹配 ({host_ip} != {conn_info['server_ip']})", file=sys.stderr)
                     continue
             except socket.gaierror:
                 if debug:
@@ -152,19 +152,13 @@ def find_matching_host(ssh_config, conn_info, debug=False):
         config_port = config.get("port", "22")
         if config_port != conn_info["server_port"]:
             if debug:
-                print(
-                    f"调试: 端口不匹配 ({config_port} != {conn_info['server_port']})",
-                    file=sys.stderr,
-                )
+                print(f"调试: 端口不匹配 ({config_port} != {conn_info['server_port']})", file=sys.stderr)
             continue
 
         # 检查用户是否匹配（如果配置中存在）
         if "user" in config and config["user"] != conn_info["user"]:
             if debug:
-                print(
-                    f"调试: 用户不匹配 ({config['user']} != {conn_info['user']})",
-                    file=sys.stderr,
-                )
+                print(f"调试: 用户不匹配 ({config['user']} != {conn_info['user']})", file=sys.stderr)
             continue
 
         if debug:
@@ -175,83 +169,41 @@ def find_matching_host(ssh_config, conn_info, debug=False):
 
 
 def parse_args():
-    """
-    解析命令行参数
-
-    Returns:
-        tuple: (cursor_args, args) 元组，包含传递给编辑器的参数和cs工具的参数
-    """
-    # 创建参数解析器
     parser = argparse.ArgumentParser(
         prog="cs",
-        description="打开Cursor或VSCode编辑器，支持SSH远程会话\n"
-        "在SSH会话中，需要 SSH_HOST_ALIAS 环境变量指定主机别名，或将本地的ssh config复制到远程",
-        epilog="示例：\n"
-        "  cs                       # 在当前目录打开Cursor\n"
-        "  cs /path/to/dir          # 在指定目录打开Cursor\n"
-        "  cs -- --vs               # 在当前目录打开VSCode\n"
-        "  cs /path/to/dir -- --vs  # 在指定目录打开VSCode\n"
-        "  cs -- --debug            # 启用调试输出",
+        description=(
+            "在本地、通过 VSCode IPC，或生成 SSH Remote 链接打开 Cursor/VSCode。\n"
+            "SSH 会话下可通过 SSH_HOST_ALIAS 或 ssh config 推断主机别名。"
+        ),
+        epilog=(
+            "示例：\n"
+            "  cs                    # 在当前目录打开 Cursor\n"
+            "  cs /path/to/dir       # 在指定目录打开 Cursor\n"
+            "  cs --vs               # 在当前目录打开 VSCode\n"
+            "  cs /path/to/dir --vs  # 在指定目录打开 VSCode\n"
+            "  cs --debug            # 启用调试输出"
+        ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-
-    # 添加cs的参数
+    parser.add_argument("path", nargs="?", default=".")
     parser.add_argument("--vs", action="store_true", help="使用VSCode而不是Cursor")
     parser.add_argument("--debug", action="store_true", help="启用调试输出")
+    args = parser.parse_args()
 
-    # 查找 -- 分隔符的位置
-    try:
-        separator_index = sys.argv.index("--")
-        cs_args = sys.argv[separator_index + 1 :]
-        cursor_args = [
-            arg for i, arg in enumerate(sys.argv[1:]) if i < separator_index - 1
-        ]
-    except ValueError:
-        # 如果没有 -- 分隔符，所有参数都是 cursor_args
-        cs_args = []
-        cursor_args = sys.argv[1:]
-
-    # 解析cs_args
-    args = parser.parse_args(cs_args)
-    return cursor_args, args
-
-
-def validate_path(path, debug=False):
-    """
-    验证并标准化路径
-
-    Args:
-        path: 输入的路径
-        debug: 是否启用调试输出
-
-    Returns:
-        str: 绝对路径
-    """
-    if not path:
-        path = os.getcwd()
-
-    abs_path = Path(path).resolve()
-    if not abs_path.exists():
-        print(f"错误: 路径不存在: {abs_path}", file=sys.stderr)
+    args.path = Path(args.path).resolve()
+    if not args.path.exists():
+        print(f"错误: 路径不存在: {args.path}", file=sys.stderr)
         sys.exit(1)
-
-    return abs_path
+    return args
 
 
 def get_host_alias(debug=False):
-    """
-    获取主机别名
+    """根据优先级获取主机别名。
 
-    按优先级：
-    1. SSH_HOST_ALIAS环境变量
-    2. SSH配置中的匹配项
-    3. 当前主机名
-
-    Args:
-        debug: 是否启用调试输出
-
-    Returns:
-        str: 主机别名
+    优先级：
+    1) 环境变量 `SSH_HOST_ALIAS`
+    2) SSH 配置匹配项（来自 `~/.ssh/config` 与 `~/.ssh/config_local`）
+    3) 本机主机名（去掉域名后缀）
     """
     # 1. 检查环境变量
     host_alias = os.getenv("SSH_HOST_ALIAS")
@@ -295,45 +247,27 @@ def get_host_alias(debug=False):
     return host_alias
 
 
-def launch_local_editor(cursor_args, args):
-    """
-    在本地启动编辑器
-
-    Args:
-        editor: 编辑器名称 ('cursor' 或 'code')
-        path: 要打开的路径
-        debug: 是否启用调试输出
-    """
+def launch_local_editor(args):
+    """尝试在本地直接启动编辑器。"""
     editor = "code" if args.vs else "cursor"
     if not which(editor):
         return -1
     if args.debug:
-        print(f"调试: 在本地启动 {editor}: {cursor_args}", file=sys.stderr)
-    return subprocess.run([editor, *cursor_args]).returncode
+        print(f"调试: 在本地启动 {editor}: {args.path}", file=sys.stderr)
+    return subprocess.run([editor, args.path]).returncode
 
 
-def launch_editor_over_ipc(cursor_args):
+def launch_editor_over_ipc(args):
+    """通过 VSCode IPC 转发请求以在本机 VSCode 打开路径。"""
     ensure_socat_is_in_PATH()
     try:
         # run the code binary with the args of the current script and exit with the same return code
-        return launch_code_over_ipc(sys.argv[1:])
+        return launch_code_over_ipc([args.path])
     except SystemExit as e:  # catch python exit
         return e.code
 
 
 def generate_remote_uri(host_alias, path, use_vscode=False, debug=False):
-    """
-    生成远程编辑器URI
-
-    Args:
-        editor: 编辑器类型 ('cursor' 或 'vscode')
-        host_alias: 主机别名
-        path: 路径
-        debug: 是否启用调试输出
-
-    Returns:
-        str: 编辑器URI
-    """
     editor_prefix = "vscode" if use_vscode else "cursor"
     uri = f"{editor_prefix}://vscode-remote/ssh-remote+{host_alias}{path}"
 
@@ -343,19 +277,15 @@ def generate_remote_uri(host_alias, path, use_vscode=False, debug=False):
     return uri
 
 
-def print_remote_uri(cursor_args, args):
+def print_remote_uri(args):
     # 在SSH会话中，获取主机别名
     host_alias = get_host_alias(args.debug)
     if not host_alias:
         print("错误: 无法确定主机别名", file=sys.stderr)
         return -1
 
-    # 获取目标路径
-    path = cursor_args[0] if cursor_args else ""
-    abs_path = validate_path(path, args.debug)
-
     # 生成并输出编辑器URI
-    uri = generate_remote_uri(host_alias, abs_path, args.vs, args.debug)
+    uri = generate_remote_uri(host_alias, args.path, args.vs, args.debug)
 
     # 输出可点击链接
     print("\n请点击以下链接打开编辑器（或手动复制链接，在浏览器中打开）：\n")
@@ -364,21 +294,15 @@ def print_remote_uri(cursor_args, args):
 
 
 def main():
-    """主函数"""
-    # 解析参数
-    cursor_args, args = parse_args()
-
+    args = parse_args()
     # 本地启动编辑器
-    if launch_local_editor(cursor_args, args) == 0:
+    if launch_local_editor(args) == 0:
         return
-
     # 在远程启动编辑器
-    if launch_editor_over_ipc(cursor_args) == 0:
+    if launch_editor_over_ipc(args) == 0:
         return
-
-    if print_remote_uri(cursor_args, args) == 0:
+    if print_remote_uri(args) == 0:
         return
-
     print("错误: 无法启动编辑器", file=sys.stderr)
 
 
