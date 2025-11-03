@@ -168,3 +168,8 @@ CR2LF() {
 whereami() {
     echo "$SSH_CONNECTION" | awk '{ print $3 }'
 }
+
+# kill parent process of a given process
+killp() {
+    kill -9 "$(ps -o ppid= -p "$1")"
+}
