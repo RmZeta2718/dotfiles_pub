@@ -1,11 +1,11 @@
 [url "git@github.com:"]
-	insteadOf = https://github.com/
+    insteadOf = https://github.com/
 
 # Allow local customizations in the .gitconfig_local file
 [include]
-	path = ~/.gitconfig_local
+    path = ~/.gitconfig_local
 [core]
-	quotepath = off
+    quotepath = off
 [push]
     # gpsup by default
     autoSetupRemote = true
@@ -28,22 +28,22 @@
 
 # ssh signing
 [gpg]
-	format = ssh
+    format = ssh
 [user]
-	signingKey = ~/.ssh/id_ed25519.pub
+    signingKey = ~/.ssh/id_ed25519.pub
 [commit]
-	gpgsign = true
+    gpgsign = true
 [tag]
-	gpgsign = true
+    gpgsign = true
 
 # git maintenance (disabled)
 # [include]
-# 	path = ~/.gitmaintenance
+#     path = ~/.gitmaintenance
 # [init]
-# 	templateDir = ~/.git-templates
+#     templateDir = ~/.git-templates
 
 [filter "lfs"]
-        process = git-lfs filter-process
-        required = true
-        clean = git-lfs clean -- %f
-        smudge = git-lfs smudge -- %f
+    process = git-lfs filter-process
+    required = true
+    clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f
