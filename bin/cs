@@ -181,6 +181,7 @@ def parse_args():
             "  cs /path/to/dir       # 在指定目录打开 Cursor\n"
             "  cs --vs               # 在当前目录打开 VSCode\n"
             "  cs /path/to/dir --vs  # 在指定目录打开 VSCode\n"
+            "  cs /path/to/dir -r    # 在当前窗口打开目录\n"
             "  cs --debug            # 启用调试输出"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -188,6 +189,9 @@ def parse_args():
     parser.add_argument("path", nargs="?", default=".")
     parser.add_argument("--vs", action="store_true", help="使用VSCode而不是Cursor")
     parser.add_argument("--debug", action="store_true", help="启用调试输出")
+    parser.add_argument(
+        "--reuse-window", "-r", action="store_true", help="Force to open a file or folder in an already opened window."
+    )
     args = parser.parse_args()
 
     args.path = Path(args.path).resolve()
@@ -247,14 +251,22 @@ def get_host_alias(debug=False):
     return host_alias
 
 
+def get_cmd(args):
+    cmd = [args.path]
+    if args.reuse_window:
+        cmd.append("-r")
+    return cmd
+
+
 def launch_local_editor(args):
     """尝试在本地直接启动编辑器。"""
     editor = "code" if args.vs else "cursor"
     if not which(editor):
         return -1
+    cmd = get_cmd(args)
     if args.debug:
-        print(f"调试: 在本地启动 {editor}: {args.path}", file=sys.stderr)
-    return subprocess.run([editor, args.path]).returncode
+        print(f"调试: 在本地启动 {editor}: {cmd}", file=sys.stderr)
+    return subprocess.run([editor, *cmd]).returncode
 
 
 def launch_editor_over_ipc(args):
@@ -262,7 +274,7 @@ def launch_editor_over_ipc(args):
     ensure_socat_is_in_PATH()
     try:
         # run the code binary with the args of the current script and exit with the same return code
-        return launch_code_over_ipc([args.path])
+        return launch_code_over_ipc(get_cmd(args))
     except SystemExit as e:  # catch python exit
         return e.code
 
