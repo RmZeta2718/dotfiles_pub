@@ -112,11 +112,11 @@ fpath=(~/.zsh/completion $fpath)
 
 source "$ZSH/oh-my-zsh.sh"
 
-# https://github.com/zsh-users/zsh-autosuggestions/issues/511
-# this also turn off bracketed paste, which cause some problems when pasting
-# zle_bracketed_paste=()
 # https://github.com/ohmyzsh/ohmyzsh/issues/5459#issuecomment-2106102549
 zle_highlight=('paste:none')
+# https://github.com/zsh-users/zsh-autosuggestions/issues/511
+# this is not preferred, as it also turns off bracketed paste, causing some problems when pasting
+# zle_bracketed_paste=()
 
 # Time to wait for additional characters in a sequence
 # https://www.johnhawthorn.com/2012/09/vi-escape-delays/
