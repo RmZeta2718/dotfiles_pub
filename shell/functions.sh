@@ -173,3 +173,7 @@ whereami() {
 killp() {
     kill -9 "$(ps -o ppid= -p "$1")"
 }
+
+rsp() {
+    rs "$@" --info=progress2 -z
+}
