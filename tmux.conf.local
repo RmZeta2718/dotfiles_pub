@@ -476,6 +476,10 @@ set -ga terminal-overrides ",xterm-256color:Tc"
 # 32767 is the tested max value in 3.2a, and `#!important` to override oh-my-tmux default
 set -sg repeat-time 32767  #!important
 
+# weird OSC sequence show up in windows terminal
+# https://github.com/microsoft/terminal/issues/18004#issuecomment-3393604634
+set -sg escape-time 50  #!important
+
 # https://stackoverflow.com/a/79306046
 # allow OSC 8 (https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda) in tmux
 set -as terminal-features ",*:hyperlinks"
